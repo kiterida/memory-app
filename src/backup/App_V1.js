@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { supabase } from './components/supabaseClient';
+import { supabase } from './supabaseClient';
 import { Button, TextField, Typography, Box } from '@mui/material';
 import MUITreeView from './components/MUITreeView';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import ApiMethodSetItemExpansion from './components/SampleTree';
 
 function App() {
   const [notes, setNotes] = useState([]);
@@ -158,8 +157,7 @@ const handleDropUpdate = async (draggedItemId, newParentId) => {
           <Button variant="contained" onClick={deleteNote} color="error">Delete Note</Button>
         </Box>
 
-       
-        <MUITreeView />
+        <MUITreeView treeData={treeData} onDropUpdate={handleDropUpdate} />
 
       
         
