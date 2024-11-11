@@ -13,6 +13,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useTreeViewApiRef } from '@mui/x-tree-view/hooks';
 import Stack from '@mui/material/Stack';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import ButtonGroup from '@mui/material/ButtonGroup';
 
 const ITEM_TYPE = 'TREE_ITEM';
 
@@ -146,6 +149,7 @@ export default function MUITreeView() {
   
 
   return (
+    <DndProvider backend={HTML5Backend}>
     <Stack spacing={2}>
       <Stack spacing={2} direction="row">
         <Button onClick={ExpandNewlyCreatedParent}>Expand Data Grid</Button>
@@ -153,7 +157,7 @@ export default function MUITreeView() {
       </Stack>
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         {/* <Box sx={{ flex: 1, minWidth: 250, maxWidth: 300 }}> */}
-        <Box sx={{ height: '400px', overflowY: 'auto', minWidth: 300 }}>  {/* Adjust height as needed */}
+        <Box sx={{ height: '80vh', overflowY: 'auto', minWidth: 300 }}>  {/* Adjust height as needed */}
           <SimpleTreeView apiRef={apiRef}>
             {mapTreeData(treeData)}
           </SimpleTreeView>
@@ -191,12 +195,16 @@ export default function MUITreeView() {
                 fullWidth
                 margin="normal"
               />
+               <ButtonGroup variant="contained" aria-label="Basic button group">
               <Button variant="contained" onClick={handleSave} sx={{ marginTop: 2 }}>
                 Save
               </Button>
               <Button variant="contained" color="error" onClick={handleDelete} sx={{ marginTop: 2 }}>
                 Delete
               </Button>
+             
+    
+    </ButtonGroup>
 
             </>
           ) : (
@@ -205,6 +213,7 @@ export default function MUITreeView() {
         </Box>
       </Box>
     </Stack>
+    </DndProvider>
   );
 }
 
@@ -218,19 +227,34 @@ function DraggableTreeItem({
   setExpandedItemId,
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const [{ isDragging }, drag] = useDrag({
+  const [{ isDragging: dragActive }, drag] = useDrag({
     type: ITEM_TYPE,
-    item: { id: item.id, parent_id: item.parent_id },
+    item: () => {
+      setIsDragging(true);
+      return { id: item.id, parent_id: item.parent_id };
+    },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
+    end: () => setIsDragging(false),
   });
+
+  const resetParentIdOnLeftDrop = async (draggedItem) => {
+    await onDropUpdate(draggedItem.id, null); // Set parent_id to null
+  };
 
   const [, drop] = useDrop({
     accept: ITEM_TYPE,
-    drop: (draggedItem) => {
-      if (draggedItem.id !== item.id) {
+    drop: (draggedItem, monitor) => {
+      const dropOffset = monitor.getDifferenceFromInitialOffset();
+
+      if (dropOffset && dropOffset.x < -100) { // Adjust threshold if needed
+        // Dragged item is outside to the left, reset parent_id
+        resetParentIdOnLeftDrop(draggedItem);
+      } else if (draggedItem.id !== item.id) {
+        // Drop within the tree
         onDropUpdate(draggedItem.id, item.id);
       }
     },
@@ -249,7 +273,6 @@ function DraggableTreeItem({
   const getSubItemCount = (item) => {
     return item.children ? item.children.length : 0;
   };
-  
 
   return (
     <TreeItem
@@ -265,6 +288,7 @@ function DraggableTreeItem({
             width: '100%',
             minHeight: '40px',
             paddingRight: '8px',
+            paddingLeft: isDragging ? '200px' : '8px', // Expand padding when dragging
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -288,10 +312,12 @@ function DraggableTreeItem({
         </Box>
       }
       style={{
-        opacity: isDragging ? 0.5 : 1,
+        opacity: dragActive ? 0.5 : 1,
       }}
     >
       {children}
     </TreeItem>
   );
 }
+
+

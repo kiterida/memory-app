@@ -5,22 +5,21 @@ import MUITreeView from './components/MUITreeView';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import ApiMethodSetItemExpansion from './components/SampleTree';
+import PersistentDrawerLeft from './components/PersistentDrawerLeft'
+
+// Import necessary components from React Router
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from 'react-router-dom';
 
 function App() {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [noteContent, setNoteContent] = useState('');
   const [selectedNoteId, setSelectedNoteId] = useState(null);
-
-
-   // Debounce function
-   const debounce = (func, delay) => {
-    let debounceTimeout;
-    return (...args) => {
-      clearTimeout(debounceTimeout);
-      debounceTimeout = setTimeout(() => func(...args), delay);
-    };
-  };
 
   // This section is going to connect to the memory_list table and display the data in a treeview
   const [treeData, setTreeData] = useState([]);
@@ -54,6 +53,7 @@ function App() {
 
     setTreeData(nestedData);
 };
+
 
 const handleDropUpdate = async (draggedItemId, newParentId) => {
   try {
@@ -138,65 +138,72 @@ const handleDropUpdate = async (draggedItemId, newParentId) => {
 
 
   return (
-    <DndProvider backend={HTML5Backend}>
-    <div>
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>Memory Notes</Typography>
-        <Box sx={{ mb: 2 }}>
-          <TextField
-            label="Note Content"
-            value={noteContent}
-            onChange={(e) => setNoteContent(e.target.value)}
-            variant="outlined"
-            fullWidth
-          />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-          <Button variant="contained" onClick={createNote} color="primary">Create Note</Button>
-          <Button variant="contained" onClick={fetchNotes} color="info">Read Notes</Button>
-          <Button variant="contained" onClick={updateNote} color="warning">Update Note</Button>
-          <Button variant="contained" onClick={deleteNote} color="error">Delete Note</Button>
-        </Box>
+
+    <Router>
+    <Routes>
+      <Route path="/*" element={<PersistentDrawerLeft />} />
+    </Routes>
+  </Router>
+
+    // <DndProvider backend={HTML5Backend}>
+    // <div>
+    //   <Box sx={{ p: 3 }}>
+    //     <Typography variant="h4" gutterBottom>Memory Notes</Typography>
+    //     <Box sx={{ mb: 2 }}>
+    //       <TextField
+    //         label="Note Content"
+    //         value={noteContent}
+    //         onChange={(e) => setNoteContent(e.target.value)}
+    //         variant="outlined"
+    //         fullWidth
+    //       />
+    //     </Box>
+    //     <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+    //       <Button variant="contained" onClick={createNote} color="primary">Create Note</Button>
+    //       <Button variant="contained" onClick={fetchNotes} color="info">Read Notes</Button>
+    //       <Button variant="contained" onClick={updateNote} color="warning">Update Note</Button>
+    //       <Button variant="contained" onClick={deleteNote} color="error">Delete Note</Button>
+    //     </Box>
 
        
-        <MUITreeView />
+    //     <MUITreeView />
 
       
         
-        {loading ? (
-          <Typography>Loading...</Typography>
-        ) : (
-          <Box>
-            {notes.length > 0 ? (
-              notes.map((note) => (
-                <Box
-                  key={note.id}
-                  sx={{
-                    p: 2,
-                    mb: 1,
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    backgroundColor: selectedNoteId === note.id ? '#f0f0f0' : 'white',
-                  }}
-                  onClick={() => {
-                    setSelectedNoteId(note.id);
-                    setNoteContent(note.content);
-                  }}
-                >
-                  <Typography variant="h6">{note.title}</Typography>
-                  <Typography variant="body1">{note.content}</Typography>
-                  <Typography variant="caption">{note.created_at}</Typography>
-                </Box>
-              ))
-            ) : (
-              <Typography>No notes found.</Typography>
-            )}
-          </Box>
-        )}
-      </Box>
-    </div>
-    </DndProvider>
+    //     {loading ? (
+    //       <Typography>Loading...</Typography>
+    //     ) : (
+    //       <Box>
+    //         {notes.length > 0 ? (
+    //           notes.map((note) => (
+    //             <Box
+    //               key={note.id}
+    //               sx={{
+    //                 p: 2,
+    //                 mb: 1,
+    //                 border: '1px solid #ccc',
+    //                 borderRadius: '4px',
+    //                 cursor: 'pointer',
+    //                 backgroundColor: selectedNoteId === note.id ? '#f0f0f0' : 'white',
+    //               }}
+    //               onClick={() => {
+    //                 setSelectedNoteId(note.id);
+    //                 setNoteContent(note.content);
+    //               }}
+    //             >
+    //               <Typography variant="h6">{note.title}</Typography>
+    //               <Typography variant="body1">{note.content}</Typography>
+    //               <Typography variant="caption">{note.created_at}</Typography>
+    //             </Box>
+    //           ))
+    //         ) : (
+    //           <Typography>No notes found.</Typography>
+    //         )}
+    //       </Box>
+    //     )}
+    //   </Box>
+    // </div>
+    // </DndProvider>
   );
 }
 
