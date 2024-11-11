@@ -6,6 +6,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import ApiMethodSetItemExpansion from './components/SampleTree';
 import PersistentDrawerLeft from './components/PersistentDrawerLeft'
+import LoginForm from './components/LoginForm'
 
 // Import necessary components from React Router
 import {
@@ -16,10 +17,42 @@ import {
 } from 'react-router-dom';
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [noteContent, setNoteContent] = useState('');
   const [selectedNoteId, setSelectedNoteId] = useState(null);
+
+  useEffect(() => {
+    // Get the session to determine if the user is logged in
+    const checkUserSession = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session) {
+        console.log('User already logged in:', sessionData.session.user);
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    };
+
+    checkUserSession();
+
+    // Set up a listener to track auth state changes (e.g., after login or logout)
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    console.log("loggin out");
+  
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+  };
 
   // This section is going to connect to the memory_list table and display the data in a treeview
   const [treeData, setTreeData] = useState([]);
@@ -138,12 +171,17 @@ const handleDropUpdate = async (draggedItemId, newParentId) => {
 
 
   return (
-
+    <div>
+      {isLoggedIn ? (
     <Router>
     <Routes>
-      <Route path="/*" element={<PersistentDrawerLeft />} />
+      <Route path="/*" element={<PersistentDrawerLeft handleLogout={handleLogout}/>} />
     </Routes>
   </Router>
+       ) : (
+        <LoginForm onLogin={() => setIsLoggedIn(true)} />
+      )}
+    </div>
 
     // <DndProvider backend={HTML5Backend}>
     // <div>

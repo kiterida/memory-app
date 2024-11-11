@@ -98,7 +98,7 @@ export default function MUITreeView() {
       .from('memory_items')
       .insert([{
         name: 'New Child Item',
-        memory_key: '',
+        memory_key: null,
         memory_image: '',
         parent_id: parentId,
       }])

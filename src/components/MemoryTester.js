@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid2';
 import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 import { supabase } from './supabaseClient';
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -21,7 +22,8 @@ const Item = styled(Paper)(({ theme }) => ({
 export default function MemoryTester() {
   const [memoryIndex, setMemoryIndex] = useState('');
   const [memoryItems, setMemoryItems] = useState([]);
-  const [currentMemoryName, setCurrentMemoryName] = useState([])
+  const [currentMemoryName, setCurrentMemoryName] = useState('');
+  const [currentMemoryIndex, setCurrentMemoryIndex] = useState(0); // Track the index of the current memory item
 
   const handleMemoryIndexChange = async (event) => {
     const newValue = event.target.value;
@@ -30,7 +32,7 @@ export default function MemoryTester() {
   
     if (newValue) {
       try {
-        // First query: get the row with parent_id null and matching memory_key
+        // First query: get the root memory item with parent_id null and matching memory_key
         const { data: rootData, error: rootError } = await supabase
           .from('memory_items')
           .select('*')
@@ -44,21 +46,21 @@ export default function MemoryTester() {
         }
   
         console.log("Root Memory Item:", rootData);
-
         setCurrentMemoryName(rootData.name);
   
         if (rootData) {
-          // Second query: get rows where parent_id equals the id of the root row
+          // Second query: get child memory items ordered by memory_key where parent_id equals the id of the root row
           const { data: childData, error: childError } = await supabase
             .from('memory_items')
             .select('*')
-            .eq('parent_id', rootData.id);
+            .eq('parent_id', rootData.id)
+            .order('memory_key', { ascending: true }); // Order by memory_key ascending
   
           if (childError) {
             console.error("Error fetching child memory items:", childError.message);
           } else {
             setMemoryItems(childData || []);
-            console.log("Child Memory Items:", childData);
+            console.log("Ordered Child Memory Items:", childData);
           }
         } else {
           setMemoryItems([]);
@@ -71,68 +73,73 @@ export default function MemoryTester() {
     }
   };
   
-  
-  
-  
+
+  const handleNextMemoryItem = () => {
+    setCurrentMemoryIndex((prevIndex) => {
+      const nextIndex = prevIndex + 1;
+      if (nextIndex >= memoryItems.length) {
+        return 0; // Loop back to the first item if it's the last one
+      }
+      return nextIndex;
+    });
+  };
+
+  const currentMemoryItem = memoryItems[currentMemoryIndex] || {}; // Current item to display
 
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Grid container spacing={2}>
-      <Grid container spacing={2} alignItems="center">
-  <Grid item xs={6}> {/* First text field container */}
-    <Item>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-        <TextField
-          id="memoryIndexTextField"
-          label="Memory Index"
-          variant="outlined"
-          value={memoryIndex}
-          onChange={handleMemoryIndexChange}
-          fullWidth
-        />
-      </Box>
-    </Item>
-  </Grid>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={6}>
+            <Item>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <TextField
+                  id="memoryIndexTextField"
+                  label="Memory Index"
+                  variant="outlined"
+                  value={memoryIndex}
+                  onChange={handleMemoryIndexChange}
+                  fullWidth
+                />
+              </Box>
+            </Item>
+          </Grid>
 
-  <Grid item xs={6}> {/* Second text field container */}
-    <Item>
-      <Box sx={{ display: 'flex' }}>
-        <TextField
-          id="memoryNameField"
-          label="Memory Name"
-          variant="outlined"
-          value={currentMemoryName}
-          onChange={(event) => {
-            setCurrentMemoryName(event.target.value);
-          }}
-          fullWidth
-        />
-      </Box>
-    </Item>
-  </Grid>
-</Grid>
-
-        <Grid size={12}>
-          <Item>Put more stuff here</Item>
+          <Grid item xs={6}>
+            <Item>
+              <Box sx={{ display: 'flex' }}>
+                <TextField
+                  id="memoryNameField"
+                  label="Memory Name"
+                  variant="outlined"
+                  value={currentMemoryName}
+                  onChange={(event) => setCurrentMemoryName(event.target.value)}
+                  fullWidth
+                />
+              </Box>
+            </Item>
+          </Grid>
         </Grid>
-        <Grid size={12}>
-          <Item><Box sx={{display: 'flex', justifyContent: 'flex-start'}}>
+
+        <Grid item xs={12}>
+          <Item>
             {memoryItems.length > 0 ? (
-              memoryItems.map((item) => (
-                <Box key={item.id}>
-                  <strong>{item.name}</strong> - {item.description}
-                </Box>
-              ))
+              <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div>
+                  <strong>{currentMemoryItem.memory_key}</strong> - {currentMemoryItem.name}
+                </div>
+                <Button variant="contained" onClick={handleNextMemoryItem} sx={{ marginLeft: 2 }}>
+                  Next
+                </Button>
+              </Box>
             ) : (
               <div>No memory items found</div>
             )}
-          </Box></Item>
+          </Item>
         </Grid>
-        <Grid size={12}>
-          <Item>size=4</Item>
-        </Grid>
-        <Grid size={12}>
-          <Item>size=12</Item>
+
+        <Grid item xs={12}>
+          <Item>Put more stuff here</Item>
         </Grid>
       </Grid>
     </Box>

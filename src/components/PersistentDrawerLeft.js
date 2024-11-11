@@ -27,6 +27,7 @@ import GradingIcon from '@mui/icons-material/Grading';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ScubaDivingIcon from '@mui/icons-material/ScubaDiving';
 import MemoryTester from './MemoryTester';
+import Logout from './Logout';
 
 const drawerWidth = 240;
 
@@ -67,7 +68,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end',
 }));
 
-export default function PersistentDrawerLeft() {
+export default function PersistentDrawerLeft({ handleLogout }) {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const navigate = useNavigate();
@@ -80,7 +81,17 @@ export default function PersistentDrawerLeft() {
     { text: 'Memory Tester', icon: <GradingIcon />, path: '/memoryTesterPage' },
     { text: 'Deep Dive', icon: <ScubaDivingIcon />, path: '/deepDive' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+    { text: 'Log Out', icon: <SettingsIcon />, path: '/logout' },
   ];
+
+  const handleClick = (path) => {
+    if (path === '/logout') {
+      handleLogout(); // Trigger the logout function
+      navigate('/login'); // Redirect to the login page or home
+    } else {
+      navigate(path); // Navigate to other routes
+    }
+  };
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -122,7 +133,7 @@ export default function PersistentDrawerLeft() {
         <Divider />
         <List>
           {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
+            <ListItem key={item.text} disablePadding onClick={() => handleClick(item.path)}>
               <ListItemButton onClick={() => navigate(item.path)}>
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />
@@ -138,6 +149,7 @@ export default function PersistentDrawerLeft() {
           <Route path="/memoryTesterPage" element={<MemoryTesterPage />} />
           <Route path="/deepDive" element={<DeepDive />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/logout" element={<Logout handleLogout={handleLogout} />} />
         </Routes>
       </Main>
     </Box>
