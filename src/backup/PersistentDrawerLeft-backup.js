@@ -19,17 +19,19 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import InboxIcon from '@mui/icons-material/MoveToInbox';
+import MailIcon from '@mui/icons-material/Mail';
+import MUITreeView from './MUITreeView';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import GradingIcon from '@mui/icons-material/Grading';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ScubaDivingIcon from '@mui/icons-material/ScubaDiving';
-import MUITreeView from './MUITreeView';
 import MemoryTester from './MemoryTester';
 import Logout from './Logout';
 
 const drawerWidth = 240;
 
-// Page Components
+// Sample page components
 const Memories = () => <div><MUITreeView /></div>;
 const MemoryTesterPage = () => <div><MemoryTester /></div>;
 const DeepDive = () => <div>Deep Dive</div>;
@@ -43,20 +45,20 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    marginLeft: open ? drawerWidth : 0,
+    marginLeft: open ? 0 : `-${drawerWidth}px`,
   }),
 );
 
-const AppBar = styled(MuiAppBar, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    width: `calc(100% - ${open ? drawerWidth : 0}px)`,
-    marginLeft: open ? drawerWidth : 0,
+const AppBar = styled(MuiAppBar, {
+  shouldForwardProp: (prop) => prop !== 'open',
+})(({ theme, open }) => ({
+  transition: theme.transitions.create(['margin', 'width'], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
   }),
-);
+  width: open ? `calc(100% - ${drawerWidth}px)` : '100%',
+  marginLeft: open ? `${drawerWidth}px` : 0,
+}));
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -82,22 +84,23 @@ export default function PersistentDrawerLeft({ handleLogout }) {
     { text: 'Log Out', icon: <SettingsIcon />, path: '/logout' },
   ];
 
+  const handleToggle = () => {
+    console.log('toggle here');
+  }
+
   const handleClick = (path) => {
-    
     if (path === '/logout') {
-      handleLogout(); // Trigger logout
-      navigate('/login'); // Redirect to login page
+      handleLogout(); // Trigger the logout function
+      navigate('/login'); // Redirect to the login page or home
     } else {
       navigate(path); // Navigate to other routes
     }
-
-    
   };
 
   return (
-    <Box sx={{ display: 'flex' }} >
+    <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <AppBar position="fixed" open={open} >
+      <AppBar position="fixed" open={open}>
         <Toolbar>
           <IconButton
             color="inherit"
@@ -114,7 +117,6 @@ export default function PersistentDrawerLeft({ handleLogout }) {
         </Toolbar>
       </AppBar>
       <Drawer
-        onClick={handleDrawerClose}
         sx={{
           width: drawerWidth,
           flexShrink: 0,
@@ -123,7 +125,7 @@ export default function PersistentDrawerLeft({ handleLogout }) {
             boxSizing: 'border-box',
           },
         }}
-        variant="temporary"
+        variant="persistent"
         anchor="left"
         open={open}
       >
@@ -133,10 +135,10 @@ export default function PersistentDrawerLeft({ handleLogout }) {
           </IconButton>
         </DrawerHeader>
         <Divider />
-        <List >
+        <List>
           {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton onClick={() => handleClick(item.path)}>
+            <ListItem key={item.text} disablePadding onClick={() => handleClick(item.path)}>
+              <ListItemButton onClick={() => navigate(item.path)}>
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />
               </ListItemButton>
@@ -144,7 +146,8 @@ export default function PersistentDrawerLeft({ handleLogout }) {
           ))}
         </List>
       </Drawer>
-      <Main open={open} sx={{paddingTop: '80px'}}>    
+      <Main open={open}>
+        <DrawerHeader />
         <Routes>
           <Route path="/memories" element={<Memories />} />
           <Route path="/memoryTesterPage" element={<MemoryTesterPage />} />

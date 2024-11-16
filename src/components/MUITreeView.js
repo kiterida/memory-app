@@ -94,24 +94,155 @@ export default function MUITreeView() {
   };
 
   const handleCreateNewChild = async (parentId) => {
-    const { error, data: newItem } = await supabase
-      .from('memory_items')
-      .insert([{
-        name: 'New Child Item',
-        memory_key: null,
-        memory_image: '',
-        parent_id: parentId,
-      }])
-      .single();
+    try {
 
-    if (error) {
-      console.error("Error creating new child item:", error);
-    } else {
-      setExpandedItemId(parentId); // Set the expanded item to the newly created item's ID
-      const updatedData = await fetchMemoryTree();
-      setTreeData(updatedData); // Refresh tree data
+      const parentIdValue = parentId === "null" ? null : parentId;
+      let highestMemoryKey = 0;
+      console.log("handleCreateNewChild parentIdValue", parentIdValue )
+      console.log("handleCreateNewChild parentId", parentId )
+
+      if(!parentId)
+      {
+        console.log('create differnt query for this one')
+
+        // If the parentId is null, we can't use  .eq('parent_id', parentId)
+        
+          // Step 1: Query for the rows where parent_id matches and order by memory_key descending
+        const { data: highestMemoryKeyData, error: highestMemoryKeyError } = await supabase
+        .from('memory_items')
+        .select('memory_key')
+        .is('parent_id', null)
+        .order('memory_key', { ascending: false })  // Order by memory_key in descending order
+        .limit(1);  // Limit to only the row with the highest memory_key
+
+        highestMemoryKey = highestMemoryKeyData && highestMemoryKeyData.length > 0
+             ? highestMemoryKeyData[0].memory_key + 1  // Set to 1 if no rows exist
+             : 0;
+
+             console.log("root?", highestMemoryKey, highestMemoryKeyData)
+        if (highestMemoryKeyError) {
+          throw new Error("Error fetching highest memory_key: " + highestMemoryKeyError.message);
+        }
+
+      }else{
+
+           // Step 1: Query for the rows where parent_id matches and order by memory_key descending
+           const { data: highestMemoryKeyData, error: highestMemoryKeyError } = await supabase
+           .from('memory_items')
+           .select('memory_key')
+           .eq('parent_id', parentId)  // Filter by parent_id
+          //  .filter('memory_key', 'is', null)  // This will filter out null values
+           .order('memory_key', { ascending: false })  // Order by memory_key in descending order
+           .limit(1);  // Limit to only the row with the highest memory_key
+   
+           highestMemoryKey = highestMemoryKeyData && highestMemoryKeyData.length > 0
+             ? highestMemoryKeyData[0].memory_key + 1  // Set to 1 if no rows exist
+             : 0;
+
+           console.log('highestMemoryKeyData', highestMemoryKeyData[0])
+
+           if (highestMemoryKeyError) {
+             throw new Error("Error fetching highest memory_key: " + highestMemoryKeyError.message);
+           }
+
+      }
+     
+  
+      
+      // Step 2: Determine the new memory_key value
+
+      const newMemoryKey = highestMemoryKey++;
+      // const newMemoryKey = highestMemoryKeyData && highestMemoryKeyData.length > 0
+      //   ? highestMemoryKeyData[0].memory_key + 1  // Set to 1 if no rows exist
+      //   : 1;
+  
+      // Step 3: Insert the new child item with the new memory_key
+      const { error, data: newItem } = await supabase
+        .from('memory_items')
+        .insert([{
+          name: 'New Child Item',
+          memory_key: newMemoryKey,  // Use the new memory_key
+          memory_image: '',
+          parent_id: parentId,
+        }])
+        .single();
+  
+      if (error) {
+        console.error("Error creating new child item:", error);
+      } else {
+        setExpandedItemId(parentId);  // Set the expanded item to the newly created item's ID
+        const updatedData = await fetchMemoryTree();
+        setTreeData(updatedData);  // Refresh tree data
+      }
+    } catch (err) {
+      console.error("Error in handleCreateNewChild:", err);
     }
   };
+  
+
+  // const handleCreateNewChild = async (parentId) => {
+  //   try {
+  //     // Step 1: Query for the row with the highest memory_key where the parent_id matches the provided parentId
+  //     const { data: highestMemoryKeyData, error: highestMemoryKeyError } = await supabase
+  //       .from('memory_items')
+  //       .select('memory_key')
+  //       .eq('parent_id', parentId)  // Filter by parent_id
+  //       .order('memory_key', { ascending: false })  // Order by memory_key in descending order
+  //       .limit(1)  // Only retrieve the row with the highest memory_key
+  //       .single();  // Fetch a single row
+  
+  //     if (highestMemoryKeyError) {
+  //       throw new Error("Error fetching highest memory_key: " + highestMemoryKeyError.message);
+  //     }
+  
+  //     // Step 2: Determine the new memory_key value
+  //     const newMemoryKey = highestMemoryKeyData ? highestMemoryKeyData.memory_key + 1 : 1;  // Set to 1 if no rows exist
+
+  //     console.log("newMemoryKey", newMemoryKey);
+  
+  //     // Step 3: Insert the new child item with the new memory_key
+  //     const { error, data: newItem } = await supabase
+  //       .from('memory_items')
+  //       .insert([{
+  //         name: 'New Child Item',
+  //         memory_key: newMemoryKey,  // Use the new memory_key
+  //         memory_image: '',
+  //         parent_id: parentId,
+  //       }])
+  //       .single();
+  
+  //     if (error) {
+  //       console.error("Error creating new child item:", error);
+  //     } else {
+  //       setExpandedItemId(parentId);  // Set the expanded item to the newly created item's ID
+  //       const updatedData = await fetchMemoryTree();
+  //       setTreeData(updatedData);  // Refresh tree data
+  //     }
+  //   } catch (err) {
+  //     console.error("Error in handleCreateNewChild:", err);
+  //   }
+  // };
+  
+
+  // const handleCreateNewChild = async (parentId) => {
+  //   const { error, data: newItem } = await supabase
+  //     .from('memory_items')
+  //     .insert([{
+  //       name: 'New Child Item',
+  //       memory_key: null,
+  //       memory_image: '',
+  //       parent_id: parentId,
+  //     }])
+  //     .single();
+
+  //   if (error) {
+  //     console.error("Error creating new child item:", error);
+  //   } else {
+  //     setExpandedItemId(parentId); // Set the expanded item to the newly created item's ID
+  //     const updatedData = await fetchMemoryTree();
+  //     setTreeData(updatedData); // Refresh tree data
+  //   }
+  // };
 
   const handleDelete = async () => {
     if (!selectedItem) return;
@@ -151,10 +282,6 @@ export default function MUITreeView() {
   return (
     <DndProvider backend={HTML5Backend}>
     <Stack spacing={2}>
-      <Stack spacing={2} direction="row">
-        <Button onClick={ExpandNewlyCreatedParent}>Expand Data Grid</Button>
-        <Button onClick={handleCollapseClick}>Collapse Data Grid</Button>
-      </Stack>
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         {/* <Box sx={{ flex: 1, minWidth: 250, maxWidth: 300 }}> */}
         <Box sx={{ height: '80vh', overflowY: 'auto', minWidth: 300 }}>  {/* Adjust height as needed */}
@@ -293,7 +420,7 @@ function DraggableTreeItem({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name} {' '}[{getSubItemCount(item)}]</Box>
+          <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name} {' '}{isHovered && <> [ {getSubItemCount(item)} ]</>}</Box>
           {isHovered && (
             <Tooltip title="Add Child Item">
               <IconButton
