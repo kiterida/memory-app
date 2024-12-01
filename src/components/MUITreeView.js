@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import Box from '@mui/material/Box';
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
@@ -21,6 +21,7 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import CodeSnippet from './CodeSnippet';
 import ItemEditScreen from './ItemEditScreen';
 import ItemDetailsTab from './ItemDetailsTab';
+import DraggableTreeItem from './DraggableTreeItem';
 
 const ITEM_TYPE = 'TREE_ITEM';
 
@@ -29,15 +30,14 @@ const MUITreeView = ({filterStarred})=> {
   const [expandedItemId, setExpandedItemId] = useState(null); // Track the expanded item
   const [selectedItem, setSelectedItem] = useState(null);
 
-  const exampleCode = `
-function sayHello() {
-  console.log("Hello, World!");
-}
-`;
+  const [width, setWidth] = useState(300); // Initial width of the box
+  const resizing = useRef(false); // Track resizing state
+  const boxRef = useRef();
+  const offset = useRef(0); // Offset between mouse and border
 
 
 
-  // console.log('filterStarred = ', filterStarred)
+   // console.log('filterStarred = ', filterStarred)
   const apiRef = useTreeViewApiRef();
 
   // Function to expand the newly created parent item
@@ -75,6 +75,44 @@ function sayHello() {
     }
   }, [expandedItemId, treeData]); // Runs when either treeData or expandedItemId changes
 
+   // Handle mouse events for resizing
+   const handleMouseDown = (e) => {
+    // Start resizing when clicking near the scrollbar
+   
+    if (e.target === boxRef.current) {
+      //  console.log('handleMouseDown');
+      resizing.current = true;
+      offset.current = e.clientX - width;
+      document.body.style.cursor = 'col-resize'; // Set cursor during resizing
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    // console.log('handleMouseMove start');
+    if (resizing.current) {
+      // const newWidth = e.clientX; // Adjust width based on mouse position
+      const newWidth = e.clientX - offset.current;
+      console.log('handleMouseMove', e.clientX);
+      // setWidth(Math.max(300, Math.min(newWidth, 600))); // Clamp between min and max
+      setWidth(newWidth);
+    }
+  };
+
+  const handleMouseUp = () => {
+    resizing.current = false; // Stop resizing
+    document.body.style.cursor = 'default'; // Reset cursor after resizing
+  };
+
+  // Attach mousemove and mouseup listeners to the document
+  React.useEffect(() => {
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
   const mapTreeData = (data, isRoot = true) => {
     const result = ((isRoot && filterStarred) ? data.filter((item) => item.starred !== false) : data) // Apply filter only at root level
       .map((item) => (
@@ -92,24 +130,6 @@ function sayHello() {
     return result;
   };
   
-  
-
-  // const mapTreeData = (data) => {
-  //   const result = data.map((item) => (
-  //     <DraggableTreeItem
-  //       key={item.id}
-  //       item={item}
-  //       itemId={item.id}
-  //       onDropUpdate={handleDropUpdate}
-  //       onSelectItem={setSelectedItem}
-  //       onCreateNewChild={handleCreateNewChild}
-  //     >
-  //       {item.children && item.children.length > 0 ? mapTreeData(item.children) : null}
-  //     </DraggableTreeItem>
-  //   ));
-  //   return result;
-  // };
-
   const handleSave = async () => {
     if (!selectedItem) return;
 
@@ -257,12 +277,30 @@ function sayHello() {
     <Stack spacing={2}>
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         {/* <Box sx={{ flex: 1, minWidth: 250, maxWidth: 300 }}> */}
-        <Box sx={{ height: '80vh', overflowY: 'auto', minWidth: 300 }}>  {/* Adjust height as needed */}
+          {/* Resizable box */}
+      <Box
+        ref={boxRef}
+        sx={{
+          width,
+          minWidth: 300,
+          maxWidth: 600,
+          overflowY: 'auto',
+          position: 'relative',
+         
+          borderRight: '4px solid #ddd',
+        }}
+        onMouseDown={handleMouseDown} // Start resizing
+      >
+          {/* <Box sx={{ height: '90%', padding: 1 }}> */}
+        <Box sx={{ height: '90vh', overflowY: 'auto'}}>  
           <SimpleTreeView apiRef={apiRef}>
             {mapTreeData(treeData)}
           </SimpleTreeView>
         </Box>
-        <Box sx={{ flex: 1, padding: 2 }}>
+    
+          </Box>
+      
+        <Box sx={{ flex: 1, padding: 2, height: '90vh',  overflowY: 'auto' }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 2 }}>
             <Tooltip title="Create new Item">
               <IconButton onClick={() => handleCreateNewChild(null)} color="primary">
@@ -326,124 +364,6 @@ function sayHello() {
       </Box>
     </Stack>
     </DndProvider>
-  );
-}
-
-function DraggableTreeItem({
-  item,
-  children,
-  onDropUpdate,
-  onSelectItem,
-  onCreateNewChild,
-  expandedItemId,
-  setExpandedItemId,
-}) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  
-  console.log(item.starred);
-  const [{ isDragging: dragActive }, drag] = useDrag({
-    type: ITEM_TYPE,
-    item: () => {
-      setIsDragging(true);
-      return { id: item.id, parent_id: item.parent_id };
-    },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-    end: () => setIsDragging(false),
-  });
-
-  const resetParentIdOnLeftDrop = async (draggedItem) => {
-    await onDropUpdate(draggedItem.id, null); // Set parent_id to null
-  };
-
-  const [, drop] = useDrop({
-    accept: ITEM_TYPE,
-    drop: (draggedItem, monitor) => {
-      const dropOffset = monitor.getDifferenceFromInitialOffset();
-
-      if (dropOffset && dropOffset.x < -100) { // Adjust threshold if needed
-        // Dragged item is outside to the left, reset parent_id
-        resetParentIdOnLeftDrop(draggedItem);
-      } else if (draggedItem.id !== item.id) {
-        // Drop within the tree
-        onDropUpdate(draggedItem.id, item.id);
-      }
-    },
-  });
-
-  const handleExpandChange = () => {
-    if (item && expandedItemId !== null) {
-      if (expandedItemId === item.id) {
-        setExpandedItemId(null); // Collapse if the item is already expanded
-      } else {
-        setExpandedItemId(item.id); // Expand the selected item
-      }
-    }
-  };
-
-  const getSubItemCount = (item) => {
-    return item.children ? item.children.length : 0;
-  };
-
-  return (
-    <TreeItem
-      ref={(node) => drag(drop(node))}
-      itemId={String(item.id)}
-      onClick={() => onSelectItem(item)}
-      label={
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            width: '100%',
-            minHeight: '40px',
-            paddingRight: '8px',
-            paddingLeft: isDragging ? '200px' : '8px', // Expand padding when dragging
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name} {' '}{isHovered && <> [ {getSubItemCount(item)} ]</>}</Box>
-          {isHovered && (
-            <div>
-            <Tooltip title="Star List">
-            <IconButton
-              onClick={(e) => {
-                const toogle = !item.starred;
-                updateStarred(item.id, toogle);
-                console.log('toggle star item:', toogle);
-                e.stopPropagation();
-              }}
-              >
-                {item.starred ? <Star /> : <StarBorderIcon />}
-            </IconButton>
-            </Tooltip>
-            <Tooltip title="Add Child Item">
-              <IconButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCreateNewChild(item.id);
-                }}
-                color="primary"
-                size="small"
-                sx={{ marginLeft: 'auto' }}
-              >
-                <AddIcon />
-              </IconButton>
-            </Tooltip>
-            </div>
-          )}
-        </Box>
-      }
-      style={{
-        opacity: dragActive ? 0.5 : 1,
-      }}
-    >
-      {children}
-    </TreeItem>
   );
 }
 
