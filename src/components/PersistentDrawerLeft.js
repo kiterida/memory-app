@@ -23,6 +23,7 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 import GradingIcon from '@mui/icons-material/Grading';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ScubaDivingIcon from '@mui/icons-material/ScubaDiving';
+import StarIcon from '@mui/icons-material/Star';
 import MUITreeView from './MUITreeView';
 import MemoryTester from './MemoryTester';
 import Logout from './Logout';
@@ -31,6 +32,7 @@ const drawerWidth = 240;
 
 // Page Components
 const Memories = () => <div><MUITreeView /></div>;
+const StarredLists = () => <div><MUITreeView filterStarred={true} /></div>;
 const MemoryTesterPage = () => <div><MemoryTester /></div>;
 const DeepDive = () => <div>Deep Dive</div>;
 const Settings = () => <div>Settings Page</div>;
@@ -76,6 +78,7 @@ export default function PersistentDrawerLeft({ handleLogout }) {
 
   const menuItems = [
     { text: 'Memories', icon: <PsychologyIcon />, path: '/memories' },
+    { text: 'Starred Lists', icon: <StarIcon />, path: '/starredLists'},
     { text: 'Memory Tester', icon: <GradingIcon />, path: '/memoryTesterPage' },
     { text: 'Deep Dive', icon: <ScubaDivingIcon />, path: '/deepDive' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
@@ -147,6 +150,7 @@ export default function PersistentDrawerLeft({ handleLogout }) {
       <Main open={open} sx={{paddingTop: '80px'}}>    
         <Routes>
           <Route path="/memories" element={<Memories />} />
+          <Route path="/starredLists" element={<StarredLists />} />
           <Route path="/memoryTesterPage" element={<MemoryTesterPage />} />
           <Route path="/deepDive" element={<DeepDive />} />
           <Route path="/settings" element={<Settings />} />

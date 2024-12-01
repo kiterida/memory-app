@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase } from '../components/supabaseClient';
 import Box from '@mui/material/Box';
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import { useDrag, useDrop } from 'react-dnd';
-import { fetchMemoryTree, updateMemoryItemParent, updateMemoryItem } from './memoryData';
+import { fetchMemoryTree, updateMemoryItemParent, updateMemoryItem } from '../components/memoryData';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { IconButton, Tooltip } from '@mui/material';

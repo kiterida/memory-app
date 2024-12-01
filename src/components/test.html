@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text-to-Speech Test</title>
+</head>
+<body>
+  <button onclick="speak('Hello! This is a test of the text-to-speech feature.')">Talk to Me</button>
+
+  <script>
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        // Set a default voice (first available)
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          utterance.voice = voices[0];
+        }
+        window.speechSynthesis.cancel()
+        window.speechSynthesis.speak(utterance);
+        console.log('do it')
+      } else {
+        alert("Your browser does not support Text-to-Speech.");
+      }
+    }
+  </script>
+</body>
+</html>

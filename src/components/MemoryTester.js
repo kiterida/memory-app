@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { styled } from '@mui/material/styles';
 import { Box, TextField, Switch, Button, Typography } from '@mui/material';
 import Paper from '@mui/material/Paper';
@@ -28,6 +28,9 @@ export default function MemoryTester() {
   const [showFields, setShowFields] = useState(true); // Toggle for field visibility
   const [currentMemoryName, setCurrentMemoryName] = useState('');
   const [currentMemoryIndex, setCurrentMemoryIndex] = useState(0); // Track the index of the current memory item
+  const [audioOn, setAudioOn] = useState(false);
+  const [isPlaying, setIsPlayingl] = useState(false);
+
 
   const handleSwitchChange = () => {
     console.log("handleSwitchChange");
@@ -83,14 +86,86 @@ export default function MemoryTester() {
     }
   };
 
+  // Ensure speech synthesis queue is clear
+// window.speechSynthesis.cancel();
+
+  function speak(text) {
+   
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US'; // Set the language
+    utterance.volume = 1; // Set volume (0.0 to 1.0)
+    utterance.rate = 1.0; // Increase rate for faster speech
+    utterance.pitch = 1; // Set pitch (default is 1)
+
+    // Use the first available voice as a default
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        utterance.voice = voices[0];
+    }
+
+    // Speak the text
+    window.speechSynthesis.speak(utterance);
+}
+
+  // function speak(text) {
+
+  //   // console.log(window.speechSynthesis.getVoices());
+  //   if ('speechSynthesis' in window) {
+  //     const utterance = new SpeechSynthesisUtterance(text);
+  
+  //     // Wait for voices to load
+  //     if (speechSynthesis.getVoices().length === 0) {
+  //       speechSynthesis.addEventListener("voiceschanged", () => {
+  //         utterance.voice = speechSynthesis.getVoices()[0]; // Use the first available voice
+  //         window.speechSynthesis.speak(utterance);
+  //         console.log("window.speechSynthesis if");
+  //       });
+  //     } else {
+  //       utterance.voice = speechSynthesis.getVoices()[0];
+  //       window.speechSynthesis.speak(utterance);
+  //       console.log("window.speechSynthesis else");
+  //     }
+  //   } else {
+  //     console.error("Text-to-Speech not supported in this browser.");
+  //   }
+  // }
+
+  const vocalise = (memIndex) => {
+
+    console.log("vocalise", audioOn);
+    if(!audioOn) return;
+
+    const currentMemoryItem = memoryItems[memIndex] || {}; // Current item to display
+
+    const sayThis = `${currentMemoryItem.memory_key}"," ${currentMemoryItem.name}`;
+
+    console.log("Say this", sayThis);
+    window.speechSynthesis.cancel();
+    // speak(String(currentMemoryItem.memory_key));
+    // speak(currentMemoryItem.name);
+    speak(sayThis);
+
+  }
+
+  const onToggleAudioOn = () => {
+    setAudioOn(!audioOn);
+    console.log('recieved toggle');
+  }
+
+  const onPlayStateChange = (playing) => {
+    console.log("Recieved play state change from toolbar: ", playing)
+  }
+  
 
   const handleNextMemoryItem = () => {
+
     setCurrentMemoryIndex((prevIndex) => {
-      console.log("handleNextMemoryItem", prevIndex);
-      const nextIndex = prevIndex + 1;
+    
+      let nextIndex = prevIndex + 1;
       if (nextIndex >= memoryItems.length) {
-        return 0; // Loop back to the first item if it's the last one
+        nextIndex = 0; // Loop back to the first item if it's the last one
       }
+      vocalise(nextIndex);
       return nextIndex;
     });
   };
@@ -182,14 +257,15 @@ export default function MemoryTester() {
             
           <Grid size={{ xs: 12}}>
           <MemoryToolbar
-             toolBarProgress={currentMemoryIndex}        // number for the progress bar
-             toolBarRange={memoryItems.length}
-            // isPlaying={isPlaying}             // boolean to determine play/pause icon
-            // onTogglePlay={handleTogglePlay}   // function to handle play/pause toggle
-            onNext={handleNextMemoryItem}               // function to go to the next item
-             onBack={handlePreviousMemoryItem}               // function to go back
-             onHandleSwitch={handleSwitchChange}
-          
+            toolBarProgress={currentMemoryIndex}      // number for the progress bar
+            toolBarRange={memoryItems.length}
+            // isPlaying={isPlaying}                  // boolean to determine play/pause icon
+            // onTogglePlay={handleTogglePlay}        // function to handle play/pause toggle
+            onNext={handleNextMemoryItem}             // function to go to the next item
+            onBack={handlePreviousMemoryItem}         // function to go back
+            onHandleSwitch={handleSwitchChange}
+            onToggleAudio={onToggleAudioOn}
+            onPlayChange={onPlayStateChange}
           />
           </Grid>
           <Grid item xs={12}>

@@ -17,6 +17,8 @@ import PauseIcon from '@mui/icons-material/Pause';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import TimerIcon from '@mui/icons-material/Timer';
+import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
+import VoiceOverOffIcon from '@mui/icons-material/VoiceOverOff';
 
 function LinearProgressWithLabel(props) {
     const progressCount = props.itemCount || 1; // Default to 1 if itemCount is 0 or undefined
@@ -53,6 +55,8 @@ const MemoryToolbar = ({
   onShowHideToggle,
   showHideValue,
   onHandleSwitch,
+  onToggleAudio,
+  onPlayChange,
 }) => {
   const [progress, setProgress] = useState(10);
   const [playing, setPlaying] = useState(false);
@@ -60,8 +64,17 @@ const MemoryToolbar = ({
   const [timerInterval, setTimerInterval] = useState(5000); // Default to 5 seconds
   const [timerId, setTimerId] = useState(null);
   const [progressCount, setProgressCount] = useState(100);
+  const [audioOn, setAudioOn] = useState(false);
 
-    console.log("toolBarRange", toolBarRange)
+    // console.log("toolBarRange", toolBarRange)
+
+
+  const handleToggleAudio = () => {
+    setAudioOn(!audioOn);
+
+    onToggleAudio();
+    // console.log("Audio On: ", audioOn)
+  }
 
   const onHandleNext = () => {
     onNext();
@@ -84,6 +97,9 @@ const MemoryToolbar = ({
 
   const handleTogglePlay = () => {
     setPlaying(!playing);
+
+    onPlayChange(!playing);
+    // console.log("setPlaying", !playing);
   };
 
   useEffect(() => {
@@ -127,6 +143,14 @@ const MemoryToolbar = ({
         </Button>
       </ButtonGroup>
 
+     
+      <Tooltip title="Speech on/off">
+      <Button onClick={handleToggleAudio}>
+        
+        {audioOn ? <RecordVoiceOverIcon />  : <VoiceOverOffIcon />}     
+      </Button>
+      </Tooltip>
+      
       {/* Timer Button */}
       <IconButton onClick={handleTimerClick}>
         <TimerIcon />
@@ -143,6 +167,10 @@ const MemoryToolbar = ({
         <MenuItem onClick={() => handleTimerClose(1000)}>1 seconds</MenuItem>
         <MenuItem onClick={() => handleTimerClose(500)}>0.5 seconds</MenuItem>
       </Menu>
+   
+
+      
+
 
       {/* Linear Progress Bar */}
       <Box sx={{ width: '100%', marginTop: 2 }}>

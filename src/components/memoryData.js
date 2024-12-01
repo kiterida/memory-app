@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 
 // Fetch memory tree data from Supabase, order it by integer memory_key, and structure it as a nested tree
 export const fetchMemoryTree = async () => {
-    const { data, error } = await supabase.rpc('fetch_memory_tree');
+    const { data, error } = await supabase.rpc('fetch_memory_tree_with_starred');
     if (error) {
       console.error("Error fetching memory tree:", error);
       return [];
@@ -98,6 +98,22 @@ export const fetchMemoryTreeOriginal = async () => {
   return nestedData;
 };
 
+// Update the starred status of an item
+export const updateStarred = async (memoryId, starredStatus) => {
+  console.log("updateStarred", memoryId, starredStatus)
+
+  try {
+  const { error } = await supabase
+      .from('memory_items')
+      .update({ starred: starredStatus})
+      .eq('id', memoryId);
+
+      if(error) throw error;
+  } catch(err) {
+    console.log("Error updating starred item");
+  }
+}
+
 // Update the parent_id of a memory item (drag and drop logic)
 export const updateMemoryItemParent = async (draggedItemId, newParentId) => {
   try {
@@ -118,10 +134,10 @@ export const updateMemoryItemParent = async (draggedItemId, newParentId) => {
 };
 
 // Update a memory item in Supabase (for the edit form)
-export const updateMemoryItem = async (id, memory_key, name, memory_image) => {
+export const updateMemoryItem = async (id, memory_key, name, memory_image, code_snippet) => {
   const { error } = await supabase
     .from('memory_items')
-    .update({ memory_key, name, memory_image })
+    .update({ memory_key, name, memory_image, code_snippet })
     .eq('id', id);
 
   if (error) {
