@@ -134,10 +134,10 @@ export const updateMemoryItemParent = async (draggedItemId, newParentId) => {
 };
 
 // Update a memory item in Supabase (for the edit form)
-export const updateMemoryItem = async (id, memory_key, name, memory_image, code_snippet) => {
+export const updateMemoryItem = async (id, memory_key, name, memory_image, code_snippet, description) => {
   const { error } = await supabase
     .from('memory_items')
-    .update({ memory_key, name, memory_image, code_snippet })
+    .update({ memory_key, name, memory_image, code_snippet, description })
     .eq('id', id);
 
   if (error) {

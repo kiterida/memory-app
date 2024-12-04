@@ -76,6 +76,17 @@ const ItemDetailsTab = ({ selectedItem, setSelectedItem}) => {
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
       <TextField
+        label="Description"
+        value={selectedItem.description || ''}
+         onChange={(e) => setSelectedItem({ ...selectedItem, description: e.target.value })}
+        fullWidth
+        multiline
+        rows={4}
+        margin="normal"
+        />
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={2}>
+      <TextField
         label="Code Snippet"
         value={selectedItem.code_snippet || ''}
          onChange={(e) => setSelectedItem({ ...selectedItem, code_snippet: e.target.value })}
@@ -84,9 +95,6 @@ const ItemDetailsTab = ({ selectedItem, setSelectedItem}) => {
         rows={4}
         margin="normal"
         />
-      </CustomTabPanel>
-      <CustomTabPanel value={value} index={2}>
-        Item Three
       </CustomTabPanel>
       <CustomTabPanel value={value} index={3}>
         Item 4

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import Box from '@mui/material/Box';
+import {Box,  Card, CardContent} from '@mui/material';
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import { useDrag, useDrop } from 'react-dnd';
@@ -133,8 +133,8 @@ const MUITreeView = ({filterStarred})=> {
   const handleSave = async () => {
     if (!selectedItem) return;
 
-    const { id, memory_key, name, memory_image, code_snippet } = selectedItem;
-    await updateMemoryItem(id, memory_key, name, memory_image, code_snippet);
+    const { id, memory_key, name, memory_image, code_snippet, description } = selectedItem;
+    await updateMemoryItem(id, memory_key, name, memory_image, code_snippet, description);
     getTreeData();
   };
 
@@ -312,7 +312,7 @@ const MUITreeView = ({filterStarred})=> {
           {selectedItem ? (
             <>
               <ItemDetailsTab selectedItem={selectedItem} setSelectedItem={setSelectedItem}/>
-              <h2>Edit Item</h2>
+              {/* <h2>Edit Item</h2>
               <TextField
                 label="Memory Key"
                 value={selectedItem.memory_key}
@@ -342,9 +342,20 @@ const MUITreeView = ({filterStarred})=> {
                 multiline
                 rows={4}
                 margin="normal"
-              />
+              /> */}
+              {selectedItem.description && 
+                    <Card sx={{marginBottom: '10px'}}>
+                <CardContent>
+                  <Box sx={{ overflow: 'auto', maxHeight: '400px' }}>
+                      {selectedItem.description }
+                                        </Box>
+                  </CardContent>
+                  </Card>}
+              { selectedItem.code_snippet && <CodeSnippet code={selectedItem.code_snippet} />}
+
+        
+            
               
-              <CodeSnippet code={selectedItem.code_snippet} />
                <ButtonGroup variant="contained" aria-label="Basic button group">
               <Button variant="contained" onClick={handleSave} sx={{ marginTop: 2 }}>
                 Save
