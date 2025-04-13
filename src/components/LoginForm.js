@@ -54,7 +54,7 @@ export default function LoginForm(onLogin ) {
         }}
       >
         <Typography variant="h5" sx={{ marginBottom: 3, color: theme.palette.text.primary }}>
-          Login
+          Login 1.0
         </Typography>
 
         <form onSubmit={handleLogin}>

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import {Box,  Card, CardContent} from '@mui/material';
+import { Box, Card, CardContent } from '@mui/material';
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import { useDrag, useDrop } from 'react-dnd';
@@ -22,10 +22,12 @@ import CodeSnippet from './CodeSnippet';
 import ItemEditScreen from './ItemEditScreen';
 import ItemDetailsTab from './ItemDetailsTab';
 import DraggableTreeItem from './DraggableTreeItem';
+import ItemToolbar from './ItemToolbar';
+import Fab from '@mui/material/Fab';
 
 const ITEM_TYPE = 'TREE_ITEM';
 
-const MUITreeView = ({filterStarred})=> {
+const MUITreeView = ({ filterStarred }) => {
   const [treeData, setTreeData] = useState([]);
   const [expandedItemId, setExpandedItemId] = useState(null); // Track the expanded item
   const [selectedItem, setSelectedItem] = useState(null);
@@ -37,7 +39,7 @@ const MUITreeView = ({filterStarred})=> {
 
 
 
-   // console.log('filterStarred = ', filterStarred)
+  // console.log('filterStarred = ', filterStarred)
   const apiRef = useTreeViewApiRef();
 
   // Function to expand the newly created parent item
@@ -55,7 +57,7 @@ const MUITreeView = ({filterStarred})=> {
     apiRef.current.setItemExpansion(event, '42', false);
   };
 
-  
+
   const getTreeData = async () => {
     console.log("Fetching tree data...");
     const data = await fetchMemoryTree();
@@ -75,10 +77,10 @@ const MUITreeView = ({filterStarred})=> {
     }
   }, [expandedItemId, treeData]); // Runs when either treeData or expandedItemId changes
 
-   // Handle mouse events for resizing
-   const handleMouseDown = (e) => {
+  // Handle mouse events for resizing
+  const handleMouseDown = (e) => {
     // Start resizing when clicking near the scrollbar
-   
+
     if (e.target === boxRef.current) {
       //  console.log('handleMouseDown');
       resizing.current = true;
@@ -129,7 +131,7 @@ const MUITreeView = ({filterStarred})=> {
       ));
     return result;
   };
-  
+
   const handleSave = async () => {
     if (!selectedItem) return;
 
@@ -152,64 +154,63 @@ const MUITreeView = ({filterStarred})=> {
 
       const parentIdValue = parentId === "null" ? null : parentId;
       let highestMemoryKey = 0;
-      console.log("handleCreateNewChild parentIdValue", parentIdValue )
-      console.log("handleCreateNewChild parentId", parentId )
+      console.log("handleCreateNewChild parentIdValue", parentIdValue)
+      console.log("handleCreateNewChild parentId", parentId)
 
-      if(!parentId)
-      {
+      if (!parentId) {
         console.log('create differnt query for this one')
 
         // If the parentId is null, we can't use  .eq('parent_id', parentId)
-        
-          // Step 1: Query for the rows where parent_id matches and order by memory_key descending
+
+        // Step 1: Query for the rows where parent_id matches and order by memory_key descending
         const { data: highestMemoryKeyData, error: highestMemoryKeyError } = await supabase
-        .from('memory_items')
-        .select('memory_key')
-        .is('parent_id', null)
-        .order('memory_key', { ascending: false })  // Order by memory_key in descending order
-        .limit(1);  // Limit to only the row with the highest memory_key
+          .from('memory_items')
+          .select('memory_key')
+          .is('parent_id', null)
+          .order('memory_key', { ascending: false })  // Order by memory_key in descending order
+          .limit(1);  // Limit to only the row with the highest memory_key
 
         highestMemoryKey = highestMemoryKeyData && highestMemoryKeyData.length > 0
-             ? highestMemoryKeyData[0].memory_key + 1  // Set to 1 if no rows exist
-             : 0;
+          ? highestMemoryKeyData[0].memory_key + 1  // Set to 1 if no rows exist
+          : 0;
 
-             console.log("root?", highestMemoryKey, highestMemoryKeyData)
+        console.log("root?", highestMemoryKey, highestMemoryKeyData)
         if (highestMemoryKeyError) {
           throw new Error("Error fetching highest memory_key: " + highestMemoryKeyError.message);
         }
 
-      }else{
+      } else {
 
-           // Step 1: Query for the rows where parent_id matches and order by memory_key descending
-           const { data: highestMemoryKeyData, error: highestMemoryKeyError } = await supabase
-           .from('memory_items')
-           .select('memory_key')
-           .eq('parent_id', parentId)  // Filter by parent_id
+        // Step 1: Query for the rows where parent_id matches and order by memory_key descending
+        const { data: highestMemoryKeyData, error: highestMemoryKeyError } = await supabase
+          .from('memory_items')
+          .select('memory_key')
+          .eq('parent_id', parentId)  // Filter by parent_id
           //  .filter('memory_key', 'is', null)  // This will filter out null values
-           .order('memory_key', { ascending: false })  // Order by memory_key in descending order
-           .limit(1);  // Limit to only the row with the highest memory_key
-   
-           highestMemoryKey = highestMemoryKeyData && highestMemoryKeyData.length > 0
-             ? highestMemoryKeyData[0].memory_key + 1  // Set to 1 if no rows exist
-             : 0;
+          .order('memory_key', { ascending: false })  // Order by memory_key in descending order
+          .limit(1);  // Limit to only the row with the highest memory_key
 
-           console.log('highestMemoryKeyData', highestMemoryKeyData[0])
+        highestMemoryKey = highestMemoryKeyData && highestMemoryKeyData.length > 0
+          ? highestMemoryKeyData[0].memory_key + 1  // Set to 1 if no rows exist
+          : 0;
 
-           if (highestMemoryKeyError) {
-             throw new Error("Error fetching highest memory_key: " + highestMemoryKeyError.message);
-           }
+        console.log('highestMemoryKeyData', highestMemoryKeyData[0])
+
+        if (highestMemoryKeyError) {
+          throw new Error("Error fetching highest memory_key: " + highestMemoryKeyError.message);
+        }
 
       }
-     
-  
-      
+
+
+
       // Step 2: Determine the new memory_key value
 
       const newMemoryKey = highestMemoryKey++;
       // const newMemoryKey = highestMemoryKeyData && highestMemoryKeyData.length > 0
       //   ? highestMemoryKeyData[0].memory_key + 1  // Set to 1 if no rows exist
       //   : 1;
-  
+
       // Step 3: Insert the new child item with the new memory_key
       const { error, data: newItem } = await supabase
         .from('memory_items')
@@ -220,7 +221,7 @@ const MUITreeView = ({filterStarred})=> {
           parent_id: parentId,
         }])
         .single();
-  
+
       if (error) {
         console.error("Error creating new child item:", error);
       } else {
@@ -232,12 +233,12 @@ const MUITreeView = ({filterStarred})=> {
       console.error("Error in handleCreateNewChild:", err);
     }
   };
-  
+
 
 
   const handleDelete = async () => {
     if (!selectedItem) return;
-  
+
     // Function to recursively delete items and their children
     const deleteItemAndChildren = async (itemId) => {
       // First, delete all child items
@@ -245,74 +246,87 @@ const MUITreeView = ({filterStarred})=> {
         .from('memory_items')
         .select('id')
         .eq('parent_id', itemId);
-  
+
       // Recursively delete all children
       for (const child of children) {
         await deleteItemAndChildren(child.id);
       }
-  
+
       // Then, delete the current item
       const { error } = await supabase
         .from('memory_items')
         .delete()
         .eq('id', itemId);
-  
+
       if (error) {
         console.error("Error deleting item:", error);
       }
     };
-  
+
     // Delete the selected item and all its children
     await deleteItemAndChildren(selectedItem.id);
-  
+
     // Refresh the tree data after deletion
     getTreeData();
   };
 
   console.log(selectedItem);
-  
+
 
   return (
     <DndProvider backend={HTML5Backend}>
-    <Stack spacing={2}>
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        {/* <Box sx={{ flex: 1, minWidth: 250, maxWidth: 300 }}> */}
+      <Stack spacing={2}>
+        <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+          {/* <Box sx={{ flex: 1, minWidth: 250, maxWidth: 300 }}> */}
           {/* Resizable box */}
-      <Box
-        ref={boxRef}
-        sx={{
-          width,
-          minWidth: 300,
-          maxWidth: 600,
-          overflowY: 'auto',
-          position: 'relative',
-         
-          borderRight: '4px solid #ddd',
-        }}
-        onMouseDown={handleMouseDown} // Start resizing
-      >
-          {/* <Box sx={{ height: '90%', padding: 1 }}> */}
-        <Box sx={{ height: '90vh', overflowY: 'auto'}}>  
-          <SimpleTreeView apiRef={apiRef}>
-            {mapTreeData(treeData)}
-          </SimpleTreeView>
-        </Box>
-    
-          </Box>
-      
-        <Box sx={{ flex: 1, padding: 2, height: '90vh',  overflowY: 'auto' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 2 }}>
-            <Tooltip title="Create new Item">
-              <IconButton onClick={() => handleCreateNewChild(null)} color="primary">
-                <AddIcon />
-              </IconButton>
-            </Tooltip>
+          <Box
+            ref={boxRef}
+            sx={{
+              width,
+              minWidth: 300,
+              maxWidth: 600,
+              overflowY: 'auto',
+              position: 'relative',
+
+              borderRight: '4px solid #ddd',
+            }}
+            onMouseDown={handleMouseDown} // Start resizing
+          >
+            {/* <Box sx={{ height: '90%', padding: 1 }}> */}
+            <Box sx={{ height: '90vh', overflowY: 'auto', position: 'relative' }}>
+
+              <SimpleTreeView apiRef={apiRef}>
+                {mapTreeData(treeData)}
+              </SimpleTreeView>
+              <Tooltip title="Create new List">
+                <Fab
+                  color="primary"
+                  aria-label="add"
+                  onClick={() => handleCreateNewChild(null)}
+                  size="small"
+                  sx={{
+                    position: 'sticky',
+                    bottom: 16, // Distance from the bottom of the Box
+                    right: 16,  // Distance from the right of the Box
+                  }}
+                >
+                  <AddIcon />
+                </Fab>
+              </Tooltip>
+
+
+            </Box>
+
           </Box>
 
-          {selectedItem ? (
-            <>
-              <ItemDetailsTab selectedItem={selectedItem} setSelectedItem={setSelectedItem}/>
-              {/* <h2>Edit Item</h2>
+          <Box sx={{ flex: 1, padding: 2, height: '90vh', overflowY: 'auto' }}>
+         
+
+            {selectedItem ? (
+              <>
+                <ItemToolbar />
+                <ItemDetailsTab selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+                {/* <h2>Edit Item</h2>
               <TextField
                 label="Memory Key"
                 value={selectedItem.memory_key}
@@ -343,37 +357,37 @@ const MUITreeView = ({filterStarred})=> {
                 rows={4}
                 margin="normal"
               /> */}
-              {selectedItem.description && 
-                    <Card sx={{marginBottom: '10px'}}>
-                <CardContent>
-                  <Box sx={{ overflow: 'auto', maxHeight: '400px' }}>
-                      {selectedItem.description }
-                                        </Box>
-                  </CardContent>
+                {selectedItem.description &&
+                  <Card sx={{ marginBottom: '10px' }}>
+                    <CardContent>
+                      <Box sx={{ overflow: 'auto', maxHeight: '400px' }}>
+                        {selectedItem.description}
+                      </Box>
+                    </CardContent>
                   </Card>}
-              { selectedItem.code_snippet && <CodeSnippet code={selectedItem.code_snippet} />}
+                {selectedItem.code_snippet && <CodeSnippet code={selectedItem.code_snippet} />}
 
-        
-            
-              
-               <ButtonGroup variant="contained" aria-label="Basic button group">
-              <Button variant="contained" onClick={handleSave} sx={{ marginTop: 2 }}>
-                Save
-              </Button>
-              <Button variant="contained" color="error" onClick={handleDelete} sx={{ marginTop: 2 }}>
-                Delete
-              </Button>
-             
-    
-    </ButtonGroup>
 
-            </>
-          ) : (
-            <p>Select an item to edit.</p>
-          )}
+
+
+                <ButtonGroup variant="contained" aria-label="Basic button group">
+                  <Button variant="contained" onClick={handleSave} sx={{ marginTop: 2 }}>
+                    Save
+                  </Button>
+                  <Button variant="contained" color="error" onClick={handleDelete} sx={{ marginTop: 2 }}>
+                    Delete
+                  </Button>
+
+
+                </ButtonGroup>
+
+              </>
+            ) : (
+              <p>Select an item to edit.</p>
+            )}
+          </Box>
         </Box>
-      </Box>
-    </Stack>
+      </Stack>
     </DndProvider>
   );
 }
