@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Switch,
@@ -65,6 +65,17 @@ const MemoryToolbar = ({
   const [timerId, setTimerId] = useState(null);
   const [progressCount, setProgressCount] = useState(100);
   const [audioOn, setAudioOn] = useState(false);
+  const intervalRef = useRef(null); // useRef is better for interval IDs
+  const timeoutRef = useRef(null); // 👈 this is where you define it
+
+  const loopRef = useRef(false); // Reference to track whether the loop is active
+
+  const onNextRef = useRef(onNext);
+
+useEffect(() => {
+  onNextRef.current = onNext; // Keep the latest function
+}, [onNext]);
+
 
     // console.log("toolBarRange", toolBarRange)
 
@@ -76,8 +87,8 @@ const MemoryToolbar = ({
     // console.log("Audio On: ", audioOn)
   }
 
-  const onHandleNext = () => {
-    onNext();
+  const onHandleNext = async () => {
+    await onNext();
   };
 
   const onSwitchChange = () => {
@@ -103,20 +114,35 @@ const MemoryToolbar = ({
   };
 
   useEffect(() => {
-    if (playing) {
-      const id = setInterval(() => {
-        onHandleNext();
+    let cancelled = false;
+  
+    const loop = async () => {
+      if (cancelled) return;
+  
+      console.log("calling await onNext()");
+      await onNextRef.current(); // ← Use the ref instead of the dependency
+      console.log("next line after await onNext()");
+  
+      if (cancelled) return;
+  
+      timeoutRef.current = setTimeout(() => {
+        if (!cancelled) {
+          console.log("loop() called inside setTimeout with timerInterval", timerInterval);
+          loop();
+        }
       }, timerInterval);
-      setTimerId(id);
-    } else if (timerId) {
-      clearInterval(timerId);
-      setTimerId(null);
-    }
-
-    return () => {
-      if (timerId) clearInterval(timerId);
     };
-  }, [playing, timerInterval]);
+  
+    if (playing) {
+      loop();
+    }
+  
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutRef.current);
+    };
+  }, [playing, timerInterval]); // ✅ `onNext` is removed from dependencies
+  
 
   useEffect(() => {
     setProgressCount(progressCount);

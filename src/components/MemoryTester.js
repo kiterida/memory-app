@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { styled } from '@mui/material/styles';
 import { Box, TextField, Switch, Button, Typography } from '@mui/material';
 import Paper from '@mui/material/Paper';
@@ -30,7 +30,10 @@ export default function MemoryTester() {
   const [currentMemoryIndex, setCurrentMemoryIndex] = useState(0); // Track the index of the current memory item
   const [audioOn, setAudioOn] = useState(false);
   const [isPlaying, setIsPlayingl] = useState(false);
-
+  const [shouldVocalise, setShouldVocalise] = useState(false);
+  
+  const vocalisePromiseRef = useRef(null); // To track the promise that resolves when speech ends
+  const speechInProgress = useRef(false); // To prevent starting a new speech while one is in progress
 
   const handleSwitchChange = () => {
     console.log("handleSwitchChange");
@@ -107,45 +110,6 @@ export default function MemoryTester() {
     window.speechSynthesis.speak(utterance);
 }
 
-  // function speak(text) {
-
-  //   // console.log(window.speechSynthesis.getVoices());
-  //   if ('speechSynthesis' in window) {
-  //     const utterance = new SpeechSynthesisUtterance(text);
-  
-  //     // Wait for voices to load
-  //     if (speechSynthesis.getVoices().length === 0) {
-  //       speechSynthesis.addEventListener("voiceschanged", () => {
-  //         utterance.voice = speechSynthesis.getVoices()[0]; // Use the first available voice
-  //         window.speechSynthesis.speak(utterance);
-  //         console.log("window.speechSynthesis if");
-  //       });
-  //     } else {
-  //       utterance.voice = speechSynthesis.getVoices()[0];
-  //       window.speechSynthesis.speak(utterance);
-  //       console.log("window.speechSynthesis else");
-  //     }
-  //   } else {
-  //     console.error("Text-to-Speech not supported in this browser.");
-  //   }
-  // }
-
-  const vocalise = (memIndex) => {
-
-    console.log("vocalise", audioOn);
-    if(!audioOn) return;
-
-    const currentMemoryItem = memoryItems[memIndex] || {}; // Current item to display
-
-    const sayThis = `${currentMemoryItem.memory_key}"," ${currentMemoryItem.name}`;
-
-    console.log("Say this", sayThis);
-    window.speechSynthesis.cancel();
-    // speak(String(currentMemoryItem.memory_key));
-    // speak(currentMemoryItem.name);
-    speak(sayThis);
-
-  }
 
   const onToggleAudioOn = () => {
     setAudioOn(!audioOn);
@@ -155,20 +119,41 @@ export default function MemoryTester() {
   const onPlayStateChange = (playing) => {
     console.log("Recieved play state change from toolbar: ", playing)
   }
+
   
-
-  const handleNextMemoryItem = () => {
-
-    setCurrentMemoryIndex((prevIndex) => {
-    
-      let nextIndex = prevIndex + 1;
-      if (nextIndex >= memoryItems.length) {
-        nextIndex = 0; // Loop back to the first item if it's the last one
-      }
-      vocalise(nextIndex);
-      return nextIndex;
+  const vocalise = useCallback((memIndex) => {
+    return new Promise((resolve) => {
+      if (!audioOn) return resolve();
+  
+      const currentMemoryItem = memoryItems[memIndex] || {};
+      const sayThis = `${currentMemoryItem.memory_key}, ${currentMemoryItem.name}`;
+  
+      console.log("Say this", sayThis);
+      console.log("🔊 Starting speech...");
+  
+      const utterance = new SpeechSynthesisUtterance(sayThis);
+  
+      utterance.onend = () => {
+        console.log("✅ Speech ended");
+        resolve();
+      };
+  
+      utterance.onerror = (e) => {
+        console.error("❌ Speech error:", e);
+        resolve(); // Still resolve to avoid blocking
+      };
+  
+      window.speechSynthesis.speak(utterance);
     });
-  };
+  }, [audioOn, memoryItems]); // Make sure memoryItems and audioOn are stable
+  
+  const handleNextMemoryItem = useCallback(async () => {
+    const nextIndex = (currentMemoryIndex + 1) % memoryItems.length;
+    await vocalise(nextIndex); // Wait for speech first
+    setCurrentMemoryIndex(nextIndex); // Then move to next
+  }, [currentMemoryIndex, memoryItems, vocalise]);
+  
+  
 
   const handlePreviousMemoryItem = () => {
     setCurrentMemoryIndex((prevIndex) => {
@@ -240,7 +225,7 @@ export default function MemoryTester() {
                     variant="contained"
                     onClick={handleNextMemoryItem}
                     sx={{
-                      display: 'none',
+                      display: 'default',
                       marginTop: 'auto',
                       width: '100%',
                     }}
