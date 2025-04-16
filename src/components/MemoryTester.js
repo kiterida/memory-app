@@ -41,52 +41,90 @@ export default function MemoryTester() {
   };
   const handleMemoryIndexChange = async (event) => {
     const newValue = event.target.value;
+
+    let memoryIndexes = [];
+
+    if (typeof newValue === 'string') {
+      // Normalize input: replace dashes with commas, then split
+      const normalized = newValue.replace(/-/g, ',');
+      memoryIndexes = normalized
+        .split(',')
+        .map(val => parseInt(val.trim(), 10))
+        .filter(val => !isNaN(val));
+
+        console.log("memoryIndexes - ", memoryIndexes);
+
+        if(normalized.length > 1){
+
+          const { data, error } = await supabase.rpc('get_nested_items_by_keys', {
+            key1: memoryIndexes[0],  // or whatever value you want
+            key2: memoryIndexes[1]
+          });
+          
+        
+        if (error) {
+          console.error("Error fetching nested items:", error);
+        } else {
+          console.log("Nested items:", data);
+          setMemoryItems(data || []);
+        }
+      }else{
+        memoryIndexes = [newValue];
+
+      if (newValue) {
+        try {
+          // First query: get the root memory item with parent_id null and matching memory_key
+          const { data: rootData, error: rootError } = await supabase
+            .from('memory_items')
+            .select('*')
+            .is('parent_id', null)
+            .eq('memory_key', parseInt(newValue))
+            .single(); // We expect a single row
+  
+            console.log("handleMemoryIndexChange memory_key", newValue);
+  
+          if (rootError) {
+            console.error("Error fetching root memory item:", rootError.message);
+            return;
+          }
+  
+          console.log("Root Memory Item:", rootData);
+          setCurrentMemoryName(rootData.name);
+  
+          if (rootData) {
+            // Second query: get child memory items ordered by memory_key where parent_id equals the id of the root row
+            const { data: childData, error: childError } = await supabase
+              .from('memory_items')
+              .select('*')
+              .eq('parent_id', rootData.id)
+              .order('memory_key', { ascending: true }); // Order by memory_key ascending
+  
+            if (childError) {
+              console.error("Error fetching child memory items:", childError.message);
+            } else {
+              setMemoryItems(childData || []);
+              console.log("Ordered Child Memory Items:", childData);
+            }
+          } else {
+            setMemoryItems([]);
+          }
+        } catch (error) {
+          console.error("Unexpected error:", error);
+        }
+      } else {
+        setMemoryItems([]);
+      }
+      }
+
+    } else if (typeof newValue === 'number') {
+      
+    }
+
+    console.log("Final memoryIndexes array:", memoryIndexes);
     setMemoryIndex(newValue);
     console.log("Memory Index:", newValue);
 
-    if (newValue) {
-      try {
-        // First query: get the root memory item with parent_id null and matching memory_key
-        const { data: rootData, error: rootError } = await supabase
-          .from('memory_items')
-          .select('*')
-          .is('parent_id', null)
-          .eq('memory_key', parseInt(newValue))
-          .single(); // We expect a single row
 
-          console.log("handleMemoryIndexChange memory_key", newValue);
-
-        if (rootError) {
-          console.error("Error fetching root memory item:", rootError.message);
-          return;
-        }
-
-        console.log("Root Memory Item:", rootData);
-        setCurrentMemoryName(rootData.name);
-
-        if (rootData) {
-          // Second query: get child memory items ordered by memory_key where parent_id equals the id of the root row
-          const { data: childData, error: childError } = await supabase
-            .from('memory_items')
-            .select('*')
-            .eq('parent_id', rootData.id)
-            .order('memory_key', { ascending: true }); // Order by memory_key ascending
-
-          if (childError) {
-            console.error("Error fetching child memory items:", childError.message);
-          } else {
-            setMemoryItems(childData || []);
-            console.log("Ordered Child Memory Items:", childData);
-          }
-        } else {
-          setMemoryItems([]);
-        }
-      } catch (error) {
-        console.error("Unexpected error:", error);
-      }
-    } else {
-      setMemoryItems([]);
-    }
   };
 
   // Ensure speech synthesis queue is clear
@@ -120,37 +158,78 @@ export default function MemoryTester() {
     console.log("Recieved play state change from toolbar: ", playing)
   }
 
-  
-  const vocalise = useCallback((memIndex) => {
+  const vocalise = useCallback((memIndex, timerInterval) => {
     return new Promise((resolve) => {
       if (!audioOn) return resolve();
   
       const currentMemoryItem = memoryItems[memIndex] || {};
-      const sayThis = `${currentMemoryItem.memory_key}, ${currentMemoryItem.name}`;
+      const delayBetweenParts = timerInterval; // ⏱️ Delay in milliseconds (make configurable later)
   
-      console.log("Say this", sayThis);
-      console.log("🔊 Starting speech...");
+      const speak = (text) => {
+        return new Promise((res) => {
+          const utterance = new SpeechSynthesisUtterance(text);
   
-      const utterance = new SpeechSynthesisUtterance(sayThis);
+          utterance.onend = () => {
+            console.log(`✅ Speech ended for: "${text}"`);
+            res();
+          };
   
-      utterance.onend = () => {
-        console.log("✅ Speech ended");
-        resolve();
+          utterance.onerror = (e) => {
+            console.error("❌ Speech error:", e);
+            res(); // Still resolve to continue flow
+          };
+  
+          window.speechSynthesis.speak(utterance);
+        });
       };
   
-      utterance.onerror = (e) => {
-        console.error("❌ Speech error:", e);
-        resolve(); // Still resolve to avoid blocking
-      };
+      (async () => {
+        console.log("🔊 Speaking memory_key:", currentMemoryItem.memory_key);
+        await speak(currentMemoryItem.memory_key);
   
-      window.speechSynthesis.speak(utterance);
+        console.log(`⏸️ Waiting ${delayBetweenParts}ms...`);
+        await new Promise((res) => setTimeout(res, delayBetweenParts));
+  
+        console.log("🔊 Speaking name:", currentMemoryItem.name);
+        await speak(currentMemoryItem.name);
+  
+        resolve(); // ✅ Done after both speeches
+      })();
     });
-  }, [audioOn, memoryItems]); // Make sure memoryItems and audioOn are stable
+  }, [audioOn, memoryItems]);
   
-  const handleNextMemoryItem = useCallback(async () => {
+  // Working version
+  // const vocalise = useCallback((memIndex) => {
+  //   return new Promise((resolve) => {
+  //     if (!audioOn) return resolve();
+  
+  //     const currentMemoryItem = memoryItems[memIndex] || {};
+  //     const sayThis = `${currentMemoryItem.memory_key}, ${currentMemoryItem.name}`;
+  
+  //     console.log("Say this", sayThis);
+  //     console.log("🔊 Starting speech...");
+  
+  //     const utterance = new SpeechSynthesisUtterance(sayThis);
+  
+  //     utterance.onend = () => {
+  //       console.log("✅ Speech ended");
+  //       resolve();
+  //     };
+  
+  //     utterance.onerror = (e) => {
+  //       console.error("❌ Speech error:", e);
+  //       resolve(); // Still resolve to avoid blocking
+  //     };
+  
+  //     window.speechSynthesis.speak(utterance);
+  //   });
+  // }, [audioOn, memoryItems]); // Make sure memoryItems and audioOn are stable
+  
+  const handleNextMemoryItem = useCallback(async (timerInterval) => {
     const nextIndex = (currentMemoryIndex + 1) % memoryItems.length;
-    await vocalise(nextIndex); // Wait for speech first
+    
     setCurrentMemoryIndex(nextIndex); // Then move to next
+    await vocalise(nextIndex, timerInterval); // Wait for speech first
   }, [currentMemoryIndex, memoryItems, vocalise]);
   
   

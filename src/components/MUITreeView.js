@@ -61,7 +61,10 @@ const MUITreeView = ({ filterStarred }) => {
   const getTreeData = async () => {
     console.log("Fetching tree data...");
     const data = await fetchMemoryTree();
+    console.log("Tree data length = ", data.length)
+
     setTreeData(data);
+    console.log("data = ", data);
     console.log("Tree data fetched");
   };
 

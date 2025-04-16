@@ -120,7 +120,7 @@ useEffect(() => {
       if (cancelled) return;
   
       console.log("calling await onNext()");
-      await onNextRef.current(); // ← Use the ref instead of the dependency
+      await onNextRef.current(timerInterval); // ← Use the ref instead of the dependency
       console.log("next line after await onNext()");
   
       if (cancelled) return;

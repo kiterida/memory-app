@@ -3,12 +3,28 @@ import { supabase } from './supabaseClient';
 
 // Fetch memory tree data from Supabase, order it by integer memory_key, and structure it as a nested tree
 export const fetchMemoryTree = async () => {
-    const { data, error } = await supabase.rpc('fetch_memory_tree_with_starred');
-    if (error) {
-      console.error("Error fetching memory tree:", error);
-      return [];
-    }
+
+  const { data, error } = await supabase
+  .from('memory_tree_with_starred')
+  .select('*')
+  .range(0, 9999); // Can now exceed 1000 safely
+
+if (error) {
+  console.error("Error fetching memory tree view:", error);
+  return [];
+}
+
+console.log("fetchMemoryTree data length = ", data.length);
+
+    // const { data, error } = await supabase.rpc('fetch_memory_tree_with_starred').range(0, 9999);
+    // if (error) {
+    //   console.error("Error fetching memory tree:", error);
+    //   return [];
+    // }
+
+    // console.log("fetchMemoryTree data length = ", data.length);
   
+    
     // Sort data with null parent_id items first, ordered by integer memory_key
     data.sort((a, b) => {
       if (a.parent_id === null && b.parent_id !== null) return -1;
@@ -24,6 +40,8 @@ export const fetchMemoryTree = async () => {
     data.forEach((item) => {
       dataMap[item.id] = { ...item, children: [] };
     });
+
+    console.log("dataMap = ", dataMap);
   
     const nestedData = [];
     data.forEach((item) => {
@@ -33,6 +51,8 @@ export const fetchMemoryTree = async () => {
         dataMap[item.parent_id].children.push(dataMap[item.id]);
       }
     });
+
+    console.log("nestedData = ", nestedData);
   
     return nestedData;
   };
