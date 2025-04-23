@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import { styled, useTheme } from '@mui/material/styles';
 import { Box, Card, CardContent } from '@mui/material';
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
@@ -37,8 +36,6 @@ const MUITreeView = ({ filterStarred }) => {
   const resizing = useRef(false); // Track resizing state
   const boxRef = useRef();
   const offset = useRef(0); // Offset between mouse and border
-
-  const theme = useTheme();
 
 
 
@@ -278,148 +275,218 @@ const MUITreeView = ({ filterStarred }) => {
 
   console.log(selectedItem);
 
-  // console.log('description:', selectedItem.description, typeof selectedItem.description);
-
 
   return (
-    <DndProvider backend={HTML5Backend}>
-    <Box sx={{ height: `calc(100vh - 56px)`, width: '100vw', overflow: 'hidden'}}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          flex: 1,
-          height: '100%',
-          width: '100%',
-          minHeight: 0, // Ensures inner scroll container works properly
-          // border: '2px solid red'
-        }}
-      >
-        {/* TREE VIEW AREA */}
-        <Box
-          ref={boxRef}
-          sx={{
-            width: { xs: '100%', sm: width },
-            minWidth: { sm: 300 },
-            maxWidth: { sm: 600 },
-            flexShrink: 0,
-            height: { xs: '30vh', sm: '100%' },
-            overflowY: 'auto',
-            borderRight: { xs: 'none', sm: '4px solid #ddd' },
-          }}
-          onMouseDown={handleMouseDown}
-        >
-          <Box sx={{ padding: 0 }}>
-            <SimpleTreeView apiRef={apiRef}>
-              {mapTreeData(treeData)}
-            </SimpleTreeView>
-  
-            <Tooltip title="Create new List">
-              <Fab
-                color="primary"
-                aria-label="add"
-                onClick={() => handleCreateNewChild(null)}
-                size="small"
-                sx={{
-                  position: 'sticky',
-                  bottom: 16,
-                  right: 16,
-                }}
-              >
-                <AddIcon />
-              </Fab>
-            </Tooltip>
-          </Box>
-        </Box>
-  
-   
-{/* DETAILS AREA */}
-<Box
-  sx={{
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-    minHeight: 0,
-  }}
->
-  {selectedItem ? (
-    <>
-      <ItemToolbar />
+    // <DndProvider backend={HTML5Backend}>
+    //   <Box sx={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
+    //   <Box
+    //       sx={{
+    //         display: 'flex',
+    //         flexDirection: { xs: 'column', sm: 'row' }, // Column on mobile, row on desktop
+    //         height: '100%', // Make sure the full height is used
+    //         width: '100%',
+    //       }}
+    //     >
+ 
+    //       <Box
+    //           ref={boxRef}
+    //           sx={{
+    //             width: { xs: '100%', sm: width },
+    //             minWidth: { sm: 300 },
+    //             maxWidth: { sm: 600 },
+    //             // height: { xs: '50vh', sm: '100vh' }, // Half-height on mobile
+    //             height: '100%',
+    //             overflowY: 'auto',
+    //             position: 'relative',
+    //             borderRight: { xs: 'none', sm: '4px solid #ddd' },
+    //           }}
+    //           onMouseDown={handleMouseDown}
+    //         >
+    
+    //         <Box sx={{ height: '100%', overflowY: 'auto', position: 'relative' }}>
 
-      {/* Scrollable Content */}
+
+    //           <SimpleTreeView apiRef={apiRef}>
+    //             {mapTreeData(treeData)}
+    //           </SimpleTreeView>
+    //           <Tooltip title="Create new List">
+    //             <Fab
+    //               color="primary"
+    //               aria-label="add"
+    //               onClick={() => handleCreateNewChild(null)}
+    //               size="small"
+    //               sx={{
+    //                 position: 'sticky',
+    //                 bottom: 16, // Distance from the bottom of the Box
+    //                 right: 16,  // Distance from the right of the Box
+    //               }}
+    //             >
+    //               <AddIcon />
+    //             </Fab>
+    //           </Tooltip>
+
+
+    //         </Box>
+
+    //       </Box>
+
+    //       <Box
+    //         sx={{
+    //           flex: 1,
+    //           display: 'flex',
+    //           flexDirection: 'column',
+    //           height: '100%',
+    //           overflow: 'hidden', // Prevent this container from overflowing
+    //         }}
+    //       >
+    //         {selectedItem ? (
+    //           <>
+    //             <ItemToolbar />
+
+    //             <Box
+    //               sx={{
+    //                 flex: 1,
+    //                 overflowY: 'auto',
+    //                 padding: 2,
+    //                 display: 'flex',
+    //                 flexDirection: 'column',
+    //               }}
+    //             >
+    //               <ItemDetailsTab selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+
+    //               {selectedItem.description && (
+    //                 <Card sx={{ marginBottom: '10px' }}>
+    //                   <CardContent>
+    //                     <Box sx={{ overflow: 'auto', maxHeight: '400px' }}>
+    //                       {selectedItem.description}
+    //                     </Box>
+    //                   </CardContent>
+    //                 </Card>
+    //               )}
+
+    //               {selectedItem.code_snippet && <CodeSnippet code={selectedItem.code_snippet} />}
+
+    //               <ButtonGroup variant="contained" aria-label="Basic button group">
+    //                 <Button variant="contained" onClick={handleSave} sx={{ marginTop: 2 }}>
+    //                   Save
+    //                 </Button>
+    //                 <Button variant="contained" color="error" onClick={handleDelete} sx={{ marginTop: 2 }}>
+    //                   Delete
+    //                 </Button>
+    //               </ButtonGroup>
+    //             </Box>
+    //           </>
+    //         ) : (
+    //           <p>Select an item to edit.</p>
+    //         )}
+    //       </Box>
+
+    //     </Box>
+    //   </Box>
+    // </DndProvider>
+    <DndProvider backend={HTML5Backend}>
+  <Box sx={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        height: '100%',
+        width: '100%',
+        overflow: 'hidden',
+      }}
+    >
+      {/* TREE VIEW AREA */}
+      <Box
+        ref={boxRef}
+        sx={{
+          width: { xs: '100%', sm: width },
+          minWidth: { sm: 300 },
+          maxWidth: { sm: 600 },
+          flexShrink: 0,
+          height: { xs: '50vh', sm: '100%' }, // half height on mobile
+          overflowY: 'auto',
+          borderRight: { xs: 'none', sm: '4px solid #ddd' },
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        <Box sx={{ padding: 2 }}>
+          <SimpleTreeView apiRef={apiRef}>
+            {mapTreeData(treeData)}
+          </SimpleTreeView>
+
+          <Tooltip title="Create new List">
+            <Fab
+              color="primary"
+              aria-label="add"
+              onClick={() => handleCreateNewChild(null)}
+              size="small"
+              sx={{
+                position: 'sticky',
+                bottom: 16,
+                right: 16,
+              }}
+            >
+              <AddIcon />
+            </Fab>
+          </Tooltip>
+        </Box>
+      </Box>
+
+      {/* DETAILS AREA */}
       <Box
         sx={{
           flex: 1,
-          overflowY: 'auto',
+          height: { xs: '50vh', sm: '100%' }, // half height on mobile
           display: 'flex',
           flexDirection: 'column',
-          minHeight: 0,
-          position: 'relative', // ensures sticky works correctly
+          overflow: 'hidden',
         }}
       >
-        <ItemDetailsTab selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+        {selectedItem ? (
+          <>
+            <ItemToolbar />
 
-        {/* {selectedItem.description && (
-                <Box sx={{ border: '1px solid red' }}>
-                  {selectedItem.description}
-                </Box>
-              )} */}
+            <Box
+              sx={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: 2,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <ItemDetailsTab selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
 
-            {selectedItem.description && (
-                       <Box sx={{ flexShrink: 0, overflow: 'auto', maxHeight:'200px', marginBottom: '10px' }}>
-                       <Card>
-                         <CardContent>
-                          {selectedItem.description}
-                         </CardContent>
-                       </Card>
-                     </Box>
-                    )}
+              {selectedItem.description && (
+                <Card sx={{ marginBottom: '10px' }}>
+                  <CardContent>
+                    <Box sx={{ overflow: 'auto', maxHeight: '400px' }}>
+                      {selectedItem.description}
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
 
-        {/* {selectedItem.description && (
-          <Box sx={{ marginBottom: 2 }}>
-            <CodeSnippet code={selectedItem.description} />
-          </Box>
-        )} */}
+              {selectedItem.code_snippet && <CodeSnippet code={selectedItem.code_snippet} />}
 
-        {selectedItem.code_snippet && (
-          <Box sx={{ marginBottom: 2 }}>
-            <CodeSnippet code={selectedItem.code_snippet} />
-          </Box>
+              <ButtonGroup variant="contained" aria-label="Basic button group">
+                <Button variant="contained" onClick={handleSave} sx={{ marginTop: 2 }}>
+                  Save
+                </Button>
+                <Button variant="contained" color="error" onClick={handleDelete} sx={{ marginTop: 2 }}>
+                  Delete
+                </Button>
+              </ButtonGroup>
+            </Box>
+          </>
+        ) : (
+          <Box sx={{ padding: 2 }}>Select an item to edit.</Box>
         )}
-
-        {/* Sticky Footer INSIDE scrollable content */}
-        <Box
-          sx={{
-            padding: 2,
-            borderTop: '1px solid #ccc',
-            backgroundColor: 'white',
-            position: 'sticky',
-            bottom: 0,
-            zIndex: 1,
-            display: 'flex',
-            justifyContent: 'center',
-          }}
-        >
-          <ButtonGroup variant="contained" sx={{ width: '100%' }}>
-            <Button onClick={handleSave} sx={{ width: '50%' }}>Save</Button>
-            <Button color="error" onClick={handleDelete} sx={{ width: '50%' }}>
-              Delete
-            </Button>
-          </ButtonGroup>
-        </Box>
-      </Box>
-    </>
-  ) : (
-    <Box sx={{ padding: 2 }}>Select an item to edit.</Box>
-  )}
-</Box>
-
       </Box>
     </Box>
-  </DndProvider>
-  
-    
+  </Box>
+</DndProvider>
+
   );
 }
 

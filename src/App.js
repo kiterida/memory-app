@@ -166,9 +166,6 @@ const handleDropUpdate = async (draggedItemId, newParentId) => {
   };
 
 
- 
-    
-
 
   return (
     <div>
@@ -183,65 +180,7 @@ const handleDropUpdate = async (draggedItemId, newParentId) => {
       )}
     </div>
 
-    // <DndProvider backend={HTML5Backend}>
-    // <div>
-    //   <Box sx={{ p: 3 }}>
-    //     <Typography variant="h4" gutterBottom>Memory Notes</Typography>
-    //     <Box sx={{ mb: 2 }}>
-    //       <TextField
-    //         label="Note Content"
-    //         value={noteContent}
-    //         onChange={(e) => setNoteContent(e.target.value)}
-    //         variant="outlined"
-    //         fullWidth
-    //       />
-    //     </Box>
-    //     <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-    //       <Button variant="contained" onClick={createNote} color="primary">Create Note</Button>
-    //       <Button variant="contained" onClick={fetchNotes} color="info">Read Notes</Button>
-    //       <Button variant="contained" onClick={updateNote} color="warning">Update Note</Button>
-    //       <Button variant="contained" onClick={deleteNote} color="error">Delete Note</Button>
-    //     </Box>
-
-       
-    //     <MUITreeView />
-
-      
-        
-    //     {loading ? (
-    //       <Typography>Loading...</Typography>
-    //     ) : (
-    //       <Box>
-    //         {notes.length > 0 ? (
-    //           notes.map((note) => (
-    //             <Box
-    //               key={note.id}
-    //               sx={{
-    //                 p: 2,
-    //                 mb: 1,
-    //                 border: '1px solid #ccc',
-    //                 borderRadius: '4px',
-    //                 cursor: 'pointer',
-    //                 backgroundColor: selectedNoteId === note.id ? '#f0f0f0' : 'white',
-    //               }}
-    //               onClick={() => {
-    //                 setSelectedNoteId(note.id);
-    //                 setNoteContent(note.content);
-    //               }}
-    //             >
-    //               <Typography variant="h6">{note.title}</Typography>
-    //               <Typography variant="body1">{note.content}</Typography>
-    //               <Typography variant="caption">{note.created_at}</Typography>
-    //             </Box>
-    //           ))
-    //         ) : (
-    //           <Typography>No notes found.</Typography>
-    //         )}
-    //       </Box>
-    //     )}
-    //   </Box>
-    // </div>
-    // </DndProvider>
+    
   );
 }
 

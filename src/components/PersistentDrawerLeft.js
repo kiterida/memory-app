@@ -40,7 +40,10 @@ const Settings = () => <div>Settings Page</div>;
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
     flexGrow: 1,
-    padding: theme.spacing(3),
+    display: 'flex',
+    overflow: 'auto', // make scrolling possible
+    flexDirection: 'column',
+    // padding: theme.spacing(2),
     transition: theme.transitions.create('margin', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
@@ -116,6 +119,7 @@ export default function PersistentDrawerLeft({ handleLogout }) {
           </Typography>
         </Toolbar>
       </AppBar>
+      
       <Drawer
         onClick={handleDrawerClose}
         sx={{
@@ -147,7 +151,9 @@ export default function PersistentDrawerLeft({ handleLogout }) {
           ))}
         </List>
       </Drawer>
-      <Main open={open} sx={{paddingTop: '80px'}}>    
+      {/* <Main open={open} sx={{paddingTop: '80px'}}>     */}
+      <Main open={open} sx={ { height: `calc(100vh - 56px)`, marginTop: '56px'}}>
+        {/* <Box sx={ { height: `calc(100vh - 56px)`, marginTop: '56px'}} /> */}
         <Routes>
           <Route path="/memories" element={<Memories />} />
           <Route path="/starredLists" element={<StarredLists />} />
