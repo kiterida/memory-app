@@ -52,10 +52,12 @@ export default function MemoryTester() {
         .map(val => parseInt(val.trim(), 10))
         .filter(val => !isNaN(val));
 
-        console.log("memoryIndexes - ", memoryIndexes);
+        console.log("memoryIndexes - ", memoryIndexes );
+        console.log("memoryIndexes length = ", memoryIndexes.length);
 
-        if(normalized.length > 1){
+        if(memoryIndexes.length > 1){
 
+          console.log("normalized.length = ", normalized.length)
           const { data, error } = await supabase.rpc('get_nested_items_by_keys', {
             key1: memoryIndexes[0],  // or whatever value you want
             key2: memoryIndexes[1]
@@ -70,6 +72,8 @@ export default function MemoryTester() {
         }
       }else{
         memoryIndexes = [newValue];
+
+        console.log("single value");
 
       if (newValue) {
         try {
@@ -117,7 +121,7 @@ export default function MemoryTester() {
       }
 
     } else if (typeof newValue === 'number') {
-      
+      console.log("typeof = number");
     }
 
     console.log("Final memoryIndexes array:", memoryIndexes);
