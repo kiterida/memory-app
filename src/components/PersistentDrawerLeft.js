@@ -27,6 +27,7 @@ import StarIcon from '@mui/icons-material/Star';
 import MUITreeView from './MUITreeView';
 import MemoryTester from './MemoryTester';
 import Logout from './Logout';
+import SettingsPage from './SettingsPage';
 
 const drawerWidth = 240;
 
@@ -35,7 +36,7 @@ const Memories = () => <div><MUITreeView /></div>;
 const StarredLists = () => <div><MUITreeView filterStarred={true} /></div>;
 const MemoryTesterPage = () => <div><MemoryTester /></div>;
 const DeepDive = () => <div>Deep Dive</div>;
-const Settings = () => <div>Settings Page</div>;
+const Settings = () => <div><SettingsPage /></div>;
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
