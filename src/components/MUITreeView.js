@@ -395,6 +395,7 @@ const MUITreeView = ({ filterStarred, appBarHeight }) => {
         <Box
           sx={{
             padding: 2,
+            paddingBottom: 'calc(16px + env(safe-area-inset-bottom))',
             borderTop: '1px solid #ccc',
             backgroundColor: 'white',
             position: 'sticky',
