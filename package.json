@@ -23,13 +23,13 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "cross-env REACT_APP_VERSION=%npm_package_version% react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "build:versioned": "cross-env REACT_APP_VERSION=$npm_package_version react-scripts build",
-    "release": "npm version patch && git push origin main && git push --tags && npm run build"
-  },
+  "start": "cross-env REACT_APP_VERSION=%npm_package_version% react-scripts start",
+  "build": "cross-env REACT_APP_VERSION=$npm_package_version react-scripts build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject",
+  "release": "npm version patch && git push origin main && git push --tags && npm run build"
+}
+,
   "eslintConfig": {
     "extends": [
       "react-app",
