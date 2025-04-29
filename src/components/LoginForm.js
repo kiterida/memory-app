@@ -3,6 +3,7 @@ import { TextField, Button, Grid, Box, Typography, Paper } from '@mui/material';
 import { useTheme } from '@mui/material/styles'; // For using theme styles
 import { supabase } from './supabaseClient';
 import { appVersion } from '../version';
+import Version from './Version';
 
 export default function LoginForm(onLogin ) {
   const theme = useTheme();  // Access the theme to use dark colors
@@ -55,8 +56,9 @@ export default function LoginForm(onLogin ) {
         }}
       >
         <Typography variant="h5" sx={{ marginBottom: 3, color: theme.palette.text.primary }}>
-        Memory - Version: {appVersion}
+        Memory
           </Typography >
+          <Version />
         <Typography variant="h5" sx={{ marginBottom: 3, color: theme.palette.text.primary }}>
           Login
         </Typography>

@@ -1,6 +1,7 @@
 // PersistentDrawerLeft.js
 
 import React from 'react';
+import { useRef } from 'react';
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import { styled, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -80,6 +81,16 @@ export default function PersistentDrawerLeft({ handleLogout }) {
   const handleDrawerOpen = () => setOpen(true);
   const handleDrawerClose = () => setOpen(false);
 
+  const appBarRef = React.useRef(null);
+  const [appBarHeight, setAppBarHeight] = React.useState(0);
+
+  React.useEffect(() => {
+    if (appBarRef.current) {
+      setAppBarHeight(appBarRef.current.offsetHeight);
+    }
+  }, []);
+
+
   const menuItems = [
     { text: 'Memories', icon: <PsychologyIcon />, path: '/memories' },
     { text: 'Starred Lists', icon: <StarIcon />, path: '/starredLists'},
@@ -104,7 +115,7 @@ export default function PersistentDrawerLeft({ handleLogout }) {
   return (
     <Box sx={{ display: 'flex' }} >
       <CssBaseline />
-      <AppBar position="fixed" open={open} >
+      <AppBar position="fixed" open={open} ref={appBarRef}>
         <Toolbar>
           <IconButton
             color="inherit"
@@ -152,8 +163,9 @@ export default function PersistentDrawerLeft({ handleLogout }) {
           ))}
         </List>
       </Drawer>
-      {/* <Main open={open} sx={{paddingTop: '80px'}}>     */}
-      <Main open={open} sx={ { height: `calc(100vh - 56px)`, marginTop: '56px'}}>
+      <Main open={open} sx={{ paddingTop: `${appBarHeight}px` }}>    
+      
+      {/* <Main open={open} sx={ { height: `calc(100vh - 56px)`, marginTop: '56px'}}> */}
         {/* <Box sx={ { height: `calc(100vh - 56px)`, marginTop: '56px'}} /> */}
         <Routes>
           <Route path="/memories" element={<Memories />} />
