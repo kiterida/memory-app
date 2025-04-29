@@ -33,11 +33,11 @@ import SettingsPage from './SettingsPage';
 const drawerWidth = 240;
 
 // Page Components
-const Memories = () => <div><MUITreeView /></div>;
-const StarredLists = () => <div><MUITreeView filterStarred={true} /></div>;
-const MemoryTesterPage = () => <div><MemoryTester /></div>;
-const DeepDive = () => <div>Deep Dive</div>;
-const Settings = () => <div><SettingsPage /></div>;
+// const Memories = () => <div><MUITreeView /></div>;
+// const StarredLists = () => <div><MUITreeView filterStarred={true} /></div>;
+// const MemoryTesterPage = () => <div><MemoryTester /></div>;
+// const DeepDive = () => <div>Deep Dive</div>;
+// const Settings = () => <div><SettingsPage /></div>;
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
@@ -111,6 +111,12 @@ export default function PersistentDrawerLeft({ handleLogout }) {
 
     
   };
+
+  const Memories = () => <div><MUITreeView appBarHeight={appBarHeight} /></div>;
+  const StarredLists = () => <div><MUITreeView filterStarred={true} appBarHeight={appBarHeight} /></div>;
+  const MemoryTesterPage = () => <div><MemoryTester /></div>;
+  const DeepDive = () => <div>Deep Dive</div>;
+  const Settings = () => <div><SettingsPage /></div>;
 
   return (
     <Box sx={{ display: 'flex' }} >

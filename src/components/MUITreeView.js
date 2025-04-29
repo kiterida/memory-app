@@ -28,7 +28,7 @@ import Fab from '@mui/material/Fab';
 
 const ITEM_TYPE = 'TREE_ITEM';
 
-const MUITreeView = ({ filterStarred }) => {
+const MUITreeView = ({ filterStarred, appBarHeight }) => {
   const [treeData, setTreeData] = useState([]);
   const [expandedItemId, setExpandedItemId] = useState(null); // Track the expanded item
   const [selectedItem, setSelectedItem] = useState(null);
@@ -280,10 +280,10 @@ const MUITreeView = ({ filterStarred }) => {
 
   // console.log('description:', selectedItem.description, typeof selectedItem.description);
 
-
+// `calc(100vh - {appBarHeight})`
   return (
     <DndProvider backend={HTML5Backend}>
-    <Box sx={{ height: `calc(100vh - 56px)`, width: '100vw', overflow: 'hidden'}}>
+    <Box sx={{ height: `calc(100vh - ${appBarHeight}px)` , width: '100vw', overflow: 'hidden'}}>
       <Box
         sx={{
           display: 'flex',
@@ -292,6 +292,8 @@ const MUITreeView = ({ filterStarred }) => {
           height: '100%',
           width: '100%',
           minHeight: 0, // Ensures inner scroll container works properly
+           minHeight: 0,
+    border: '1px solid yellow'
           // border: '2px solid red'
         }}
       >
@@ -341,6 +343,7 @@ const MUITreeView = ({ filterStarred }) => {
     flexDirection: 'column',
     height: '100%',
     minHeight: 0,
+    border: '1px solid red'
   }}
 >
   {selectedItem ? (
